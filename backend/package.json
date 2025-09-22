@@ -1,0 +1,26 @@
+{
+  "name": "proyectoitsec",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/index.js",
+    "db:create": "npx sequelize-cli db:create",
+    "sed:custom":"npx sequelize-cli db:seed --seed menus.js && npx sequelize-cli db:seed --seed roles.js && npx sequelize-cli db:seed --seed usuarios.js"
+
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.6.1",
+    "sequelize": "^6.33.0",
+    "sequelize-cli": "^6.6.1"
+  }
+}

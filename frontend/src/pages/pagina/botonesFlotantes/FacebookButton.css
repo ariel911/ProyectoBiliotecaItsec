@@ -1,0 +1,31 @@
+/* FacebookButton.css */
+.facebook-button {
+    position: fixed;
+    bottom: 100px; /* Ajusta esta posición según tu preferencia */
+    right: 20px;
+    background-color: #3b5998;
+    width: 60px; /* Ancho del botón */
+    height: 60px; /* Altura del botón */
+    border-radius: 50%;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .facebook-link {
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  
+  .facebook-button:hover {
+    background-color: #2d4373;
+  }
+  
+/*   .facebook-link svg {
+    transform: rotate(90deg); 
+  } */

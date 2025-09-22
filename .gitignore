@@ -1,0 +1,45 @@
+# ======================
+# Node.js y dependencias
+# ======================
+node_modules/         # Ignora todas las dependencias instaladas con npm/yarn/pnpm
+
+# ======================
+# Logs y depuración
+# ======================
+npm-debug.log*        # Logs generados si npm falla
+yarn-debug.log*       # Logs de yarn
+yarn-error.log*       # Errores de yarn
+pnpm-debug.log*       # Logs de pnpm
+lerna-debug.log*      # Logs de Lerna (monorepos)
+
+# ======================
+# Archivos del sistema
+# ======================
+.DS_Store             # Archivos ocultos que genera MacOS
+Thumbs.db             # Archivos ocultos de Windows
+*.swp                 # Archivos temporales de editores (ej: Vim)
+
+# ======================
+# Variables de entorno
+# ======================
+.env                  # Variables secretas (API keys, contraseñas, etc.)
+.env.local
+.env.*.local
+
+# ======================
+# Builds y distribuciones
+# ======================
+/build                # Carpeta de build de React
+/dist                 # Carpeta de build de Node.js (si usas Babel/TypeScript)
+/coverage             # Reportes de test (ej: Jest)
+/out                  # Salida en algunos frameworks (Next.js, Nuxt, etc.)
+
+# ======================
+# Cachés y temporales
+# ======================
+.cache                # Caché de herramientas (Babel, ESLint, etc.)
+.parcel-cache         # Caché de Parcel bundler
+.next                 # Carpeta de Next.js
+.nuxt                 # Carpeta de Nuxt.js
+.vscode               # Configuración personal de VSCode (puede variar)
+.idea                 # Configuración de JetBrains (WebStorm, PhpStorm)

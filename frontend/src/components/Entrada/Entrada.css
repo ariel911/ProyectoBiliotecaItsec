@@ -1,0 +1,50 @@
+.tarjetas{
+    background-color: white;
+    width: 950px;
+    height: 400px;
+    border-radius: 8px;
+    margin: 90px 0px 0px 130px;
+    grid-row: 2/3;
+    grid-column: 2/3;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+.tarjeta{
+    width: 250px;
+    height: 100px;
+    margin-top: 40px;
+    display: flex;
+    -webkit-box-shadow: 0px 1px 3px -1px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 1px 3px -1px rgba(0,0,0,0.75);
+    box-shadow: 0px 1px 3px -1px rgba(0,0,0,0.75);
+    text-align: center;
+}
+.grafico{
+    width: 40%;
+    background-color: #fef202;
+}
+.texto1{
+    width: 60%;
+    text-align: center;
+    padding: 15px;
+}
+.texto1 span{
+    color: rgb(45, 45, 45);
+    font-size: 20px;
+    font-weight:500;
+}
+.texto1 h2{
+    color: rgb(45, 45, 45);
+}
+.button{
+    margin-top: 15px;
+}
+.buscar{
+    color: aqua;
+    background-color: black;
+}
+.icone{
+    font-size:60px;
+    margin-top: 20px;
+}

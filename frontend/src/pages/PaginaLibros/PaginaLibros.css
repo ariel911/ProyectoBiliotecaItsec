@@ -1,0 +1,139 @@
+.nav2 {
+    width: 100%;
+    height: 185px;
+    background: linear-gradient(to bottom, #0022EC 82%, #0022EC 40%, #fef202 11%, #fef202 50%);
+    display: flex;
+    justify-content: space-between;
+    grid-row: 1/2;
+}
+
+.card-title {
+    font-size: 12px;
+
+}
+
+.librosTarjetas {
+    width: 100%;
+    -webkit-box-shadow: 6px 7px 40px -25px rgba(0, 0, 0, 0.52);
+    -moz-box-shadow: 6px 7px 40px -25px rgba(0, 0, 0, 0.52);
+    box-shadow: 6px 7px 40px -25px rgba(0, 0, 0, 0.52);
+}
+
+/* .cards{
+    width: 1100px;
+    height: 800px;
+    display: flex;
+    
+   background-color: #0022EC;
+}
+.tarjetas2^
+.tarjetaa{
+    width: 400px;
+    height: 350px;
+    background-color: red;
+    margin-left: 40px;
+} */
+.imagenCircular4 {
+    width: 70px;
+    height: 70px;
+
+    background-size: cover;
+    border-radius: 50%;
+    border: 2px solid #ADAAAA;
+
+    margin-top: 30px;
+    margin-right: 100px;
+}
+
+.submenuPerfil {
+    position: absolute;
+    width: 144px;
+    height: 70px;
+    background-color: rgb(56, 56, 56);
+    border-radius: 3px;
+    left: 87%;
+    top: 12%;
+    pointer-events: none;
+    /*que no tenga evento*/
+    opacity: 0;
+    /*se desaparezca*/
+
+}
+
+.buttonLogout {
+    display: block;
+    color: #ADAAAA;
+    padding: 5px 10px;
+}
+
+.perfilLink {
+    border-bottom: 2px solid #ADAAAA;
+}
+
+.perfilLink:last-child {
+    border-bottom: none;
+}
+
+.perfilLink a:hover {
+    color: white;
+    transition: 0.3ms;
+    font-weight: 500;
+}
+
+.submenuPerfilMostrar {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ocultar {
+
+    pointer-events: none;
+    opacity: 0;
+}
+
+.logo7 {
+
+    height: 80px;
+    width: 350px;
+
+    margin-top: 35px;
+    margin-left: 150px;
+}
+
+
+.tituloPaginaLibro {
+
+    margin-bottom: 40px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.contenedor3 {
+    height: 100vh;
+    background: #EFEFEF;
+    display: grid;
+    width: 100%;
+    grid-template-rows: 25% 75%;
+
+}
+
+.buscaPagina {
+    width: 90%;
+    padding: 10px;
+    margin: 0 auto;
+    height: 80%;
+}
+
+.tituloLi {
+    text-align: center;
+}
+
+.loginLibros {
+    background: #0575E6;
+    /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #021B79, #0575E6);
+    /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #021B79, #0575E6);
+    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+}

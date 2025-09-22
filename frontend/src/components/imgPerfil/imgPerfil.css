@@ -1,0 +1,42 @@
+.imagenCircular{
+    width: 70px;
+    height: 70px;
+    
+    background-size: cover;
+    border-radius: 50%;
+    border: 2px solid #ADAAAA;
+    grid-row: 1/2;
+    grid-column: 3/4;
+}
+
+a{
+    text-decoration: none;
+
+}
+
+.perfilLink a{
+    display: block;
+    color: #ADAAAA;
+    padding: 8px 10px; 
+}
+
+
+.buttonLogout{
+    display: block;
+    color: #ADAAAA;
+    padding: 5px 10px; 
+}
+
+
+.perfilLink:last-child{
+    border-bottom: none;
+}
+.perfilLink a:hover{
+    color:white;
+    transition: 0.3ms;
+    font-weight: 500;
+}
+.submenuPerfilMostrar{
+    opacity: 1;
+    pointer-events: auto;
+}

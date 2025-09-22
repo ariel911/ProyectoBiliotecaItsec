@@ -1,0 +1,59 @@
+
+.boton{
+    margin-left: 10px;
+}
+.tipoDoc{
+    width: 90%;
+    height: 100%;
+    padding: 10px;
+    margin: 0 auto;
+    grid-column: 2/4;
+}
+.boton2{
+    margin-top: 50px;
+}
+.nuevaTipoDoc{
+    width: 100%;
+    height: 50%;
+    padding: 20px;
+    margin-top: 20px;
+    background-color: white;
+    border-radius: 5px;
+    -webkit-box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
+    -moz-box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
+    box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
+}
+.tablaTipoDoc{
+    background-color: white;
+    width: 100%;
+    height: 400px;
+    margin: 10px 0px 0px 0px;
+    -webkit-box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
+    -moz-box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
+    box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
+}
+
+.tituloCarrera{
+    text-align: center;
+}
+@media (orientation: landscape) {
+    .nuevaTipoDoc{
+        height: 80%;
+
+    }
+}
+@media (min-width: 769px) { 
+    .nuevaTipoDoc {
+        width: 100%;
+        height: 200px;
+    }
+    .tablaTipoDoc {
+        height:450px;
+        width: 100%;
+    }
+    .tituloCarrera{
+
+        text-align: center;
+    }
+
+}
