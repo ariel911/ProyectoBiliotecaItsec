@@ -1,12 +1,9 @@
-
-
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import swal from 'sweetalert';
-import SancionHistorial from "../Usuario/sancion_historial";
 import "./sanciones.css"
 
-const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
+const ListarLectores = () => {
   const token = localStorage.getItem('token');
   const [selectedUser, setSelectedUser] = useState(null);
   const [sancionData, setSancionData] = useState({
@@ -27,8 +24,14 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
   const [sanci, setSanci] = useState(0);
   const [selectedUserSancion, setSelectedUserSancion] = useState('');
 
-  useEffect(() => {
+  const [historial, setHistorial] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
 
+
+
+
+  useEffect(() => {
+    handleGetHistorial();
     handleGetUsers();
     handleGetUsersSancionados();
   }, [selectedUser]);
@@ -60,17 +63,7 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
         prestamoId: null        // si tienes relación sancion_historial → persona
       });
 
-      // 2️⃣ Quitar sanción de la persona
-      const sancionResponse = await axios.get(`http://localhost:8000/api/sancion?personaId=${selectedPersona.id}`);
-      const sancion = sancionResponse.data; // Aquí te devuelve la sanción vinculada a esa persona
 
-      if (sancion && sancion.id) {
-        await axios.put(
-          `http://localhost:8000/api/sancion/${sancion.id}`,
-          { estado: 0 } // o sancionId: null, según tu lógica
-        );
-
-      }
       swal("Éxito", "La sanción fue levantada y registrada en historial ✅", "success");
 
       handleGetUsers(); // refresca listado de personas
@@ -105,23 +98,14 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
     setestudiantes(res.data.data.personas);
 
   };
-
-
-  const usuariosFiltrados = estudiantes?.filter(
-    (estudiante) => estudiante.sancion?.id
-
-  )
   const sancionarEstudiante = (user) => {
-    /*    document.getElementById('sanci').defaultValue = ''; */
-    console.log("id2:", user)
     setSelectedUserSancion(user.id);
 
 
   };
   const handleSancionarLector = async () => {
     try {
-      // Envía la solicitud de sanción al servidor
-      console.log("el iddd:", selectedUserSancion)
+
       await axios({
         url: `http://localhost:8000/api/sancion`,
         method: 'POST',
@@ -141,8 +125,6 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
       // Actualiza la lista de estudiantes sancionados
       handleGetUsersSancionados();
       handleGetUsers();
-
-      // Reinicia los datos de la sanción y el estudiante seleccionado
       setSancionData({
         tipo_sancion: '',
         descripcion: '',
@@ -152,68 +134,45 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
       });
       swal({
         title: "Sancion agregado correctamente!",
-
         icon: "success",
         button: "Ok",
       });
       setSelectedUser(null);
-
-
-
-      // Muestra un mensaje de éxito
     } catch (error) {
       // Maneja cualquier error
       console.error(error);
       alert('Error al sancionar al lector');
     }
   };
-  const handleSancionar = async () => {
-    await axios({
-      url: `http://localhost:8000/api/persona/sancionar/${selectedUserSancion}`,
-      method: "PUT",
-      data: {
-        sancionId: sanci,
 
-      },
-    }).then((response) => {
-      swal({
-        title: "Sancion aplicado correctamente!",
+  const handleGetHistorial = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/sancion_historial");
+      setHistorial(res.data.data.sancion_historial);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-        icon: "success",
-        button: "Ok",
-      });
-      // Accede a la respuesta de la API
-      console.log("Respuesta de la API:", response.data);
-    });
-    setSanci(0)
-    setSelectedUserSancion('');
-    handleGetUsers();
-  }
+  const handleEdit = (item) => {
+    setMotivo(item.motivo_levantamiento);
+    setFecha(item.fecha_levantamiento);
+    setEstado(item.estado);
+    setEditId(item.id);
+  };
 
-  const quitarSancion = async (document) => {
-    // Restablecer los campos del formulario
-    await axios({
-      url: `http://localhost:8000/api/persona/sancionar/${document}`,
-      method: "PUT",
+  const handleSearch = (e) => {
+    setBusqueda(e.target.value);
+  };
 
-      data: {
-        sancionId: null,
-
-      },
-    }).then((response) => {
-      // Accede a la respuesta de la API
-      console.log("Respuesta de la API:", response.data);
-    });
-    handleGetUsers();
-  }
+  const historialFiltrado = historial?.filter((h) =>
+    h.motivo_levantamiento?.toLowerCase().includes(busqueda.toLowerCase())
+  );
   return (
     <div className='sanciones'>
       {/* moldal para sancionar lector */}
       <h1 className="tituloSancion">Sancion</h1>
       <ul className="nav nav-tabs" role="tablist">
-        {/*         <li className="nav-item">
-          <a className="nav-link active" data-bs-toggle="tab" href="#agregar" role="tab">Agregar Sancion</a>
-        </li> */}
         <li className="nav-item">
           <a className="nav-link active" data-bs-toggle="tab" href="#listar" role="tab">Sancionar</a>
         </li>
@@ -221,7 +180,7 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
           <a className="nav-link" data-bs-toggle="tab" href="#sancionados" role="tab">Sancionados</a>
         </li>
         <li className="nav-item">
-          <a className="nav-link" data-bs-toggle="tab" href="#historial" role="tab">Historial Sancionados</a>
+          <a className="nav-link" data-bs-toggle="tab" href="#listarhistorial" role="tab">Historial Sancionados</a>
         </li>
       </ul>
       {/* modal para quitar sancion */}
@@ -272,7 +231,7 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="modalCrearSancionLabel">Crear Sanción</h1>
+              <h1 className="modal-title fs-5" id="modalCrearSancionLabel">Sancion a Estudiante</h1>
               <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div className="modal-body">
@@ -280,16 +239,20 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
                 {/* Tipo de sanción */}
                 <div className="mb-3">
                   <label htmlFor="tipoSancion" className="form-label">Tipo de Sanción</label>
-                  <input
-                    type="text"
-                    className="form-control"
+                  <select
+                    className="form-select"
                     id="tipoSancion"
                     value={sancionData.tipo_sancion}
-                    onChange={(e) => setSancionData({ ...sancionData, tipo_sancion: e.target.value })}
-                    placeholder="Ej: Multa, Suspensión..."
-                  />
+                    onChange={(e) => setSancionData({ ...sancionData, tipo_sancion: e.target.value })}>
+                    <option value="">Seleccione una opción</option>
+                    <option value="Tomar fotos a proyectos">Tomar fotos a proyectos</option>
+                    <option value="Manipular documento sin permiso">Manipular documento sin permiso</option>
+                    <option value="Impresión de documentos no permitidos">Impresión de documentos no permitidos</option>
+                    <option value="No respetar el orden del lugar">No respetar el orden del lugar</option>
+                    <option value="Bulla excesiva">Bulla excesiva</option>
+                    <option value="Otro">Otro</option>
+                  </select>
                 </div>
-
                 {/* Descripción */}
                 <div className="mb-3">
                   <label htmlFor="descripcion" className="form-label">Descripción</label>
@@ -326,22 +289,6 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
                     onChange={(e) => setSancionData({ ...sancionData, fecha_fin: e.target.value })}
                   />
                 </div>
-
-                {/* Estado */}
-                {/*    
-                <div className="mb-3">
-                  <label htmlFor="estado" className="form-label">Estado</label>
-                  <select
-                    className="form-control"
-                    id="estado"
-                    value={sancionData.estado}
-                    onChange={(e) => setSancionData({ ...sancionData, estado: e.target.value })}
-                  >
-                    <option value="" hidden>Seleccione estado</option>
-                    <option value="1">Activo</option>
-                    <option value="0">Inactivo</option>
-                  </select>
-                </div> */}
               </form>
             </div>
             <div className="modal-footer">
@@ -361,25 +308,6 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
 
       {/* modal para agregar nueva sancion */}
       <div className="tab-content">
-        {/* Pestaña Agregar Rol */}
-        {/* <div className={`tab-pane fade nuevaSancion  show active `} id='agregar'>
-          <form onSubmit={handleSancionarLector} >
-            <div className="mb-3">
-              <label htmlFor="recipient-name" className="col-form-label">Nombre Sancion:</label>
-
-              <input type="text" className="form-control" id="nombre_sancion" name="nombre_sancion" value={sancionData.nombre_sancion} onChange={e => setSancionData({ ...sancionData, nombre_sancion: e.target.value })} required />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="recipient-name" className="col-form-label">Dias inhabilitados:</label>
-              <input type="number" className="form-control" id="dias_inhabilitados" name="dias_inhabilitados" value={sancionData.dias_inhabilitados} onChange={e => setSancionData({ ...sancionData, dias_inhabilitados: parseInt(e.target.value) })} required />
-            </div>
-
-
-            <button type="submit" className="btn btn-primary" >Guardar</button>
-          </form>
-        </div> */}
-
-
         {/* tabla */}
         <div className={`tab-pane fade show active`} id='listar'>
           <div className="tablaSanciones table-responsive mt-3">
@@ -395,26 +323,89 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
                 </tr>
               </thead>
               <tbody>
-                {estudiantes?.map((estudiante, index) => (
-                  <tr key={estudiante.id}>
-                    <td>{index + 1}</td>
-                    <td>{estudiante.nombre}</td>
-                    <td>{estudiante.correo}</td>
-                    <td>{estudiante.celular}</td>
-                    <td>{estudiante.ci}</td>
-
-                    <td>
-
-                      <button className='btn btn-secondary boton' data-bs-toggle="modal" data-bs-target="#modalCrearSancion" data-bs-whatever="@mdo" onClick={(e) => sancionarEstudiante(estudiante)}>Sancionar</button>
-                    </td>
-                  </tr>
-                ))}
+                {estudiantes
+                  ?.filter(estudiante => estudiante.estado == 1)
+                  .map((estudiante, index) => (
+                    <tr key={estudiante.id}>
+                      <td>{index + 1}</td>
+                      <td>{estudiante.nombre}</td>
+                      <td>{estudiante.correo}</td>
+                      <td>{estudiante.celular}</td>
+                      <td>{estudiante.ci}</td>
+                      <td>
+                        <button
+                          className='btn btn-secondary boton'
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalCrearSancion"
+                          onClick={() => sancionarEstudiante(estudiante)}
+                        >
+                          Sancionar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
+
             </table>
           </div>
         </div>
-        {/* ver sancionados */}
 
+        {/*historial sancion */}
+        <div className="tab-pane fade" id="listarhistorial" role="tabpanel">
+          <div className="mt-4">
+            <input
+              type="text"
+              className="form-control mb-3"
+              placeholder="Buscar por motivo..."
+              value={busqueda}
+              onChange={handleSearch}
+            />
+            <div className="table-responsive tablaHistorial">
+              <table className="table table-bordered">
+                <thead className="table-dark">
+                  <tr>
+                    <th>Nº</th>
+                    <th>Sancion</th>
+                    <th>Sancionado</th>
+                    <th>Correo</th>
+                    <th>Levantamiento</th>
+                    <th>Fecha Levantamiento</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {historialFiltrado?.map((h, index) => h.estado == 1 && (
+                    <tr key={h.id}>
+                      <td>{index + 1}</td>
+                      <td>{h.sancion?.tipo_sancion}</td>
+                      <td>{h.sancion?.persona.nombre}</td>
+                      <td>{h.sancion?.persona.correo}</td>
+                      <td>{h.motivo_levantamiento}</td>
+                      <td>{h.fecha_levantamiento.slice(0, 10)}</td>
+                      <td>
+                        <button
+                          className="btn btn-warning me-2"
+                          onClick={() => handleEdit(h)}
+                        >
+                          Editar
+                        </button>
+                        {/* Si quieres eliminar físicamente, agrega un delete aquí */}
+                      </td>
+                    </tr>
+                  ))}
+                  {historialFiltrado.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="text-center">
+                        No hay registros
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {/* ver sancionados */}
         <div className={`tab-pane fade `} id='sancionados'>
           <div className="tablaSanciones table-responsive mt-3">
             <table className="table table-fixed">
@@ -429,30 +420,21 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
                 </tr>
               </thead>
               <tbody>
-                {sanciones?.map((sancion, index) => (
+                {sanciones?.map((sancion, index) => sancion.estado == 1 && (
                   <tr key={sancion.id}>
                     <td>{index + 1}</td>
-                    {console.log(sancion)}
                     <td>{sancion?.persona?.nombre}</td>
                     <td>{sancion?.persona?.correo}</td>
                     <td>{sancion?.persona?.celular}</td>
                     <td>{sancion?.persona?.ci}</td>
-
-
                     <td>
-
                       <button className="btn btn-warning" onClick={() =>
                         abrirModalQuitar({
                           id: sancion.persona.id,
                           nombre: sancion.persona.nombre,
                           sancionId: sancion.id, // 👈 se manda también el id de sanción
                         })
-                      }
-                      >
-                        Quitar sanción
-                      </button>
-                      {/* <button className='btn btn-secondary boton' onClick={(e) => quitarSancion(sancion.id)}>Quitar Sancion</button> */}
-
+                      }>Quitar sanción</button>
                     </td>
                   </tr>
                 ))}
@@ -460,12 +442,7 @@ const ListarLectores = ({ busqueda, setBusqueda, initialVar }) => {
             </table>
           </div>
         </div>
-
-        {/*        <div className={`tab-pane fade `} id='historial'>
-          <SancionHistorial />
-        </div> */}
       </div>
-
     </div>
   );
 };

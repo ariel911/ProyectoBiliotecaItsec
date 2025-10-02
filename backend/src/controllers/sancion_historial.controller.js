@@ -7,7 +7,22 @@ module.exports = {
     try {
       const sancion_historial = await models.sancion_historial.findAll({
         model: models.sancion_historial,
-        attributes: ['id', 'motivo_levantamiento', 'fecha_levantamiento','estado'],
+        attributes: ['id', 'motivo_levantamiento', 'fecha_levantamiento', 'estado'],
+        include: [
+
+          {
+            model: models.sancion,
+            attributes: ['id', 'tipo_sancion', 'descripcion', 'fecha_inicio', 'fecha_fin', 'estado'],
+            include: [
+              {
+                model: models.persona,
+                attributes: ['id', 'nombre', 'correo', 'estado', 'ci', 'celular',]
+              },
+            ],
+          },
+
+        ],
+
       });
       res.json({
         success: true,
@@ -27,23 +42,32 @@ module.exports = {
   },
   crear: async (req, res) => {
     try {
-      const { motivo_levantamiento, fecha_levantamiento,estado } = req.body;
+      const { motivo_levantamiento, fecha_levantamiento, estado, sancionId } = req.body;
 
+      // Crear el historial
       const sancion_historial = await models.sancion_historial.create({
         motivo_levantamiento,
         fecha_levantamiento,
         estado,
+        sancionId
       });
+
+      // Actualizar la sanción (marcar como levantada / inactiva)
+      await models.sancion.update(
+        { estado: 0 },
+        { where: { id: sancionId } }
+      );
 
       res.status(201).json({
         success: true,
-        data: sancion_historial
+        data: sancion_historial,
+        message: 'Sanción levantada y registrada en historial ✅'
       });
     } catch (error) {
       console.error(error);
       res.status(500).json({
         success: false,
-        error: 'Ha ocurrido un error al crear la sancion_historial'
+        error: 'Ha ocurrido un error al crear la sanción_historial'
       });
     }
   },
@@ -52,7 +76,7 @@ module.exports = {
 
   update: async (req, res) => {
     const sancion_historialId = req.params.id; // Suponiendo que el ID de la sancion_historial a actualizar se pasa como parte de la URL.
-    const { motivo_levantamiento, fecha_levantamiento,estado} = req.body;
+    const { motivo_levantamiento, fecha_levantamiento, estado } = req.body;
     try {
       // Busca la sancion_historial que se va a actualizar
       const sancion_historial = await models.sancion_historial.findByPk(sancion_historialId);
@@ -65,11 +89,11 @@ module.exports = {
           }
         });
       }
-      
+
       // Actualiza los campos de la sancion_historial
       sancion_historial.motivo_levantamiento = motivo_levantamiento,
-      sancion_historial.fecha_levantamiento = fecha_levantamiento,
-      sancion_historial.estado = estado
+        sancion_historial.fecha_levantamiento = fecha_levantamiento,
+        sancion_historial.estado = estado
       // Guarda los cambios en la base de datos
       await sancion_historial.save();
 
@@ -77,7 +101,7 @@ module.exports = {
         success: true,
         data: {
           sancion_historial,
-   
+
         }
       });
     } catch (error) {

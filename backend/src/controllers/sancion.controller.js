@@ -36,6 +36,7 @@ module.exports = {
     try {
       const { tipo_sancion, descripcion, fecha_inicio, fecha_fin, estado, personaId } = req.body;
 
+      // Crear la sanción
       const sancion = await models.sancion.create({
         tipo_sancion,
         descripcion,
@@ -45,6 +46,12 @@ module.exports = {
         personaId
       });
 
+      // Cambiar el estado de la persona a 0 (inactivo)
+      await models.persona.update(
+        { estado: 0 },
+        { where: { id: personaId } }
+      );
+
       res.status(201).json({
         success: true,
         data: sancion
@@ -53,10 +60,11 @@ module.exports = {
       console.error(error);
       res.status(500).json({
         success: false,
-        error: 'Ha ocurrido un error al crear la sancion'
+        error: 'Ha ocurrido un error al crear la sanción'
       });
     }
   },
+
 
   // 
 

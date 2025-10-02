@@ -23,10 +23,9 @@ import Login from './pages/Login/login'
 import ProtectedRoutes from './routes/ProtectedRoutes';
 import Backup from './components/backup/backup';
 import Cargar from './components/cargarEstudiantes/cargarestudiante';
-import HistorialSancion from './components/Usuario/sancion_historial';
 import Recuperacion from './components/recuperacion/recuperacion';
 
-import { HOME_INICIO,HOME_RECUPERACION,CARGAR,HOME_HISTORIAL_SANCION, HOME_ITSEC,LOGIN,HOME_ESTADISTICAS,HOME_BACKUP, PAGINA_LIBRO, HOME_TIPO, HOME_AUTOR, HOME_ROL, HOME_ESTUDIANTE, HOME_CARRERA, HOME_FORMATO, HOME_AREA, HOME_SANCION, HOME_USUARIO, HOME_DOCUMENTO, HOME_LIBRO, HOME_PRESTAMO, LOGIN_BIBLIOTECA, HOME_REPORTES } from './routes/path';
+import { HOME_INICIO,HOME_RECUPERACION,CARGAR, HOME_ITSEC,LOGIN,HOME_ESTADISTICAS,HOME_BACKUP, PAGINA_LIBRO, HOME_TIPO, HOME_AUTOR, HOME_ROL, HOME_ESTUDIANTE, HOME_CARRERA, HOME_FORMATO, HOME_AREA, HOME_SANCION, HOME_USUARIO, HOME_DOCUMENTO, HOME_LIBRO, HOME_PRESTAMO, LOGIN_BIBLIOTECA, HOME_REPORTES } from './routes/path';
 const App = () => {
 
 
@@ -55,7 +54,6 @@ const App = () => {
             <Route path={HOME_AREA} element={<div className='contenedor2'><Home /> <Area /> </div>} />
             <Route path={HOME_AUTOR} element={<div className='contenedor2'><Home /> <Autor /> </div>} />
             <Route path={HOME_SANCION} element={<div className='contenedor2'><Home /> <Sancion /> </div>} />
-            <Route path={HOME_HISTORIAL_SANCION} element={<div className='contenedor2'><Home /> <HistorialSancion /> </div>} />
             <Route path={HOME_USUARIO} element={<div className='contenedor2'><Home /> <Usuario /> </div>} />
             <Route path={HOME_DOCUMENTO} element={<div className='contenedor2'><Home /> <Documento /> </div>} />
             <Route path={HOME_LIBRO} element={<div className='contenedor2'><Home /> <Libro /> </div>} />

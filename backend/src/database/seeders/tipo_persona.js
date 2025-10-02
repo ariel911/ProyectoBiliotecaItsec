@@ -20,9 +20,6 @@ module.exports = {
           estado: 1, // Activo
         }
       }),
-
-  
-
     ]);
   },
 };

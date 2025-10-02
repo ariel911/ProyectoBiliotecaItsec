@@ -29,7 +29,7 @@ export const HOME_REPORTES = '/home/reportes';
 export const HOME_RESERVA = '/home/reservas';
 export const HOME_ITSEC = '/itsec';
 export const LOGIN_BIBLIOTECA = '/login_biblioteca';
-export const HOME_HISTORIAL_SANCION = '/home/historial_sancion';
+
 
 //
 export const CARGAR = '/cargar';
