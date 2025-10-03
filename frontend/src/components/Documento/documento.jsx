@@ -54,7 +54,7 @@ const documento = () => {
             document.getElementById('cantidad2').value = selecteDocument?.cantidad || '';
             document.getElementById('carrera2').value = selecteDocument?.carrera?.id || null;
             document.getElementById('tipodoc2').value = selecteDocument?.tipo_doc?.id || null;
-   /*          document.getElementById('format2').value = selecteDocument?.formato?.id || null; */
+            /*          document.getElementById('format2').value = selecteDocument?.formato?.id || null; */
             document.getElementById('are2').value = selecteDocument?.area?.id || null;
         }
         handleGetDocuments();
@@ -63,7 +63,6 @@ const documento = () => {
 
     useEffect(() => {
         // Obtener la lista de documentoes al cargar el componente
-
         handleGetDocuments();
         fetchTiposDocumento();
         getCarreras();
@@ -157,9 +156,6 @@ const documento = () => {
         e.preventDefault();
 
         const selectedOptionIds = selectedOption.map((option) => option.value);
-        console.log('imagen name:', imagen.name)
-        console.log('imagen:', imagen)
-
 
         // Realizar la solicitud para agregar el usuario
         try {
@@ -169,14 +165,13 @@ const documento = () => {
                     titulo: titulo,
                     cantidad: cantidad,
                     imagen: '../../assets/' + `${imagen.name}`,
-                    anio_edicion: fechaRegistro,
+                    anio_edicion: fechaRegistro || null,
                     descripcion: descripcion,
-                    ubicacion: ubicacion,
+                    ubicacion: ubicacion || null,
                     Codigo: codigo,
                     estado: 1,
-                    areaId: are,
-                    formatoId: 1,
-                    carreraId: carr,
+                    areaId: are || null,
+                    carreraId: carr || null,
                     tipoDocId: tipodoc,
                     autores: selectedOptionIds
                 },
@@ -375,10 +370,10 @@ const documento = () => {
                                 <label htmlFor="cantidad" className="form-label">Cantidad</label>
                                 <input type="number" className="form-control" id="cantidad" value={cantidad} onChange={(e) => setCantidad(e.target.value)} required />
                             </div>
-                            {/*                             <div className='mb-3 col'>
+                            <div className='mb-3 col'>
                                 <label htmlFor="recipient-name">Fecha de registro</label>
                                 <input type="datetime-local" className="form-control" value={fechaRegistro} onChange={(e) => setFechaRegistro(e.target.value)} required />
-                            </div> */}
+                            </div>
 
 
                             <div className="mb-3 col  ">
@@ -391,7 +386,7 @@ const documento = () => {
                                     )}
                                 </select>
                             </div>
-                         {/*    <div className="mb-3 col">
+                            {/*    <div className="mb-3 col">
                                 <label htmlFor="format" className="form-label">Formato</label>
                                 <select className="form-control form-select" id="format" aria-label="Default select example" value={format} onChange={(e) => setFormat(e.target.value)}>
 
@@ -543,7 +538,7 @@ const documento = () => {
                                             <input type="datetime-local" className=" form-control" id='fecha_registro2' defaultValue={selecteDocument?.anio_edicion} required />
                                         </div>
                                         <div className="mb-3 col  ">
-                                            
+
                                             <label htmlFor="carrera2" className="form-label">Carrera</label>
 
                                             <select className="form-control" id="carrera2" aria-label="Default select example" defaultValue={selecteDocument?.carrera?.id} >
@@ -566,7 +561,7 @@ const documento = () => {
                                                 ))}
                                             </select>
                                         </div>
-                                       {/*  <div className="mb-3 col">
+                                        {/*  <div className="mb-3 col">
                                             <label htmlFor="format" className="form-label">Formato</label>
                                             <select className="form-control" id="format2" aria-label="Default select example" defaultValue={selecteDocument?.formato?.id} >
 

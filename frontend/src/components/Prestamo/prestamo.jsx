@@ -23,6 +23,7 @@ const prestamo = () => {
     const [selectedOption, setSelectedOption] = useState('');
     const [estudiantes, setEstudiantes] = useState([]);
     const [prestamos, setPrestamos] = useState([]);
+    const [selectedPrestamo, setSelectedPrestamo] = useState(null);
 
     const [reservas, setReservas] = useState([]);
     const [devoluciones, setDevoluciones] = useState([]);
@@ -388,6 +389,56 @@ const prestamo = () => {
 
     };
 
+    const handleSancionarPrestamo = async () => {
+        try {
+            if (!selectedPrestamo || !sancionData.tipo_sancion || !sancionData.descripcion) {
+                swal({
+                    title: "Faltan datos",
+                    text: "Completa todos los campos antes de sancionar.",
+                    icon: "warning",
+                    button: "Ok",
+                });
+                return;
+            }
+
+            await axios.post("http://localhost:8000/api/sancion", {
+                prestamoId: selectedPrestamo, // 👈 ahora también enviamos el préstamo
+                tipo_sancion: sancionData.tipo_sancion,
+                descripcion: sancionData.descripcion,
+                fecha_inicio: sancionData.fecha_inicio,
+                fecha_fin: sancionData.fecha_fin,
+                estado: '1',
+            });
+
+            // Actualiza las listas
+            handleGetUsersSancionados();
+            handleGetUsers();
+
+            // Limpia el formulario
+            setSancionData({
+                tipo_sancion: '',
+                descripcion: '',
+                fecha_inicio: '',
+                fecha_fin: '',
+                estado: '',
+            });
+            setSelectedPrestamo(null);
+
+            swal({
+                title: "¡Sanción al préstamo registrada!",
+                icon: "success",
+                button: "Ok",
+            });
+        } catch (error) {
+            console.error(error);
+            swal({
+                title: "Error",
+                text: "No se pudo sancionar el préstamo. Inténtalo de nuevo.",
+                icon: "error",
+                button: "Ok",
+            });
+        }
+    };
 
 
 
@@ -440,6 +491,85 @@ const prestamo = () => {
                     </div>
 
                 </div>
+                <div className="modal fade" id="modalCrearSancionPrestamo" tabIndex="-1" aria-labelledby="modalCrearSancionPrestamoLabel" aria-hidden="true">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h1 className="modal-title fs-5" id="modalCrearSancionPrestamoLabel">Sanción a Préstamo</h1>
+                                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div className="modal-body">
+                                <form>
+                                    {/* Tipo de sanción */}
+                                    <div className="mb-3">
+                                        <label htmlFor="tipoSancionPrestamo" className="form-label">Tipo de Sanción</label>
+                                        <select
+                                            className="form-select"
+                                            id="tipoSancionPrestamo"
+                                            value={sancionData.tipo_sancion}
+                                            onChange={(e) => setSancionData({ ...sancionData, tipo_sancion: e.target.value })}
+                                        >
+                                            <option value="">Seleccione una opción</option>
+                                            <option value="Retraso en devolución">Retraso en devolución</option>
+                                            <option value="Daño al material prestado">Daño al material prestado</option>
+                                            <option value="Pérdida del material">Pérdida del material</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Descripción */}
+                                    <div className="mb-3">
+                                        <label htmlFor="descripcionPrestamo" className="form-label">Descripción</label>
+                                        <textarea
+                                            className="form-control"
+                                            id="descripcionPrestamo"
+                                            rows="3"
+                                            value={sancionData.descripcion}
+                                            onChange={(e) => setSancionData({ ...sancionData, descripcion: e.target.value })}
+                                            placeholder="Detalles de la sanción..."
+                                        ></textarea>
+                                    </div>
+
+                                    {/* Fecha inicio */}
+                                    <div className="mb-3">
+                                        <label htmlFor="fechaInicioPrestamo" className="form-label">Fecha de Inicio</label>
+                                        <input
+                                            type="date"
+                                            className="form-control"
+                                            id="fechaInicioPrestamo"
+                                            value={sancionData.fecha_inicio}
+                                            onChange={(e) => setSancionData({ ...sancionData, fecha_inicio: e.target.value })}
+                                        />
+                                    </div>
+
+                                    {/* Fecha fin */}
+                                    <div className="mb-3">
+                                        <label htmlFor="fechaFinPrestamo" className="form-label">Fecha de Fin</label>
+                                        <input
+                                            type="date"
+                                            className="form-control"
+                                            id="fechaFinPrestamo"
+                                            value={sancionData.fecha_fin}
+                                            onChange={(e) => setSancionData({ ...sancionData, fecha_fin: e.target.value })}
+                                        />
+                                    </div>
+                                </form>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    onClick={() => handleSancionarPrestamo()}
+                                    data-bs-dismiss="modal"
+                                >
+                                    Guardar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* aqui empieza modal prestamo reservas*/}
                 <div className={`modal fade`} id="modalPrestamoReservas" taindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 
@@ -657,6 +787,15 @@ const prestamo = () => {
                                         <td>
                                             <button className="btn btn-danger boton" data-bs-toggle="modal" data-bs-target="#modalDevolucion" data-bs-whatever="@mdo" onClick={() => hadlePrestamo(prestamo)}>
                                                 Devolver
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn btn-warning btn-sm"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalCrearSancionPrestamo"
+                                                onClick={() => setSelectedPrestamo(prestamo.id)} // guardas el id del préstamo seleccionado
+                                            >
+                                                Sancionar Préstamo
                                             </button>
                                         </td>
                                     </tr>
