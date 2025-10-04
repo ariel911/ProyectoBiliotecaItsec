@@ -507,6 +507,7 @@ const prestamo = () => {
                                             className="form-select"
                                             id="tipoSancionPrestamo"
                                             value={sancionData.tipo_sancion}
+                                            
                                             onChange={(e) => setSancionData({ ...sancionData, tipo_sancion: e.target.value })}
                                         >
                                             <option value="">Seleccione una opción</option>
