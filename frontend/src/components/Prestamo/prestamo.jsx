@@ -797,6 +797,7 @@ const prestamo = () => {
                                                 onClick={() => setSelectedPrestamo(prestamo.id)} // guardas el id del préstamo seleccionado
                                             >
                                                 Sancionar Préstamo
+
                                             </button>
                                         </td>
                                     </tr>
