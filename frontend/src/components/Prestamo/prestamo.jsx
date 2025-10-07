@@ -11,6 +11,13 @@ const prestamo = () => {
     const token = localStorage.getItem('token');
     const [selectedUser, setSelectedUser] = useState(null);
     const [prestamoData, setPrestamoData] = useState({
+        fecha_prestamo: " ",
+        fecha_devolver: " ",
+        observaciones: " ",
+        garantia: " ",
+        estado: '',
+    });
+    const [sancionData, setSancionData] = useState({
         tipo_sancion: '',
         descripcion: '',
         fecha_inicio: '',
@@ -391,7 +398,7 @@ const prestamo = () => {
 
     const handleSancionarPrestamo = async () => {
         try {
-            if (!selectedPrestamo || !sancionData.tipo_sancion || !sancionData.descripcion) {
+            if (!selectedPrestamo.id || !sancionData.tipo_sancion || !sancionData.descripcion) {
                 swal({
                     title: "Faltan datos",
                     text: "Completa todos los campos antes de sancionar.",
@@ -402,7 +409,8 @@ const prestamo = () => {
             }
 
             await axios.post("http://localhost:8000/api/sancion", {
-                prestamoId: selectedPrestamo, // 👈 ahora también enviamos el préstamo
+                prestamoId: selectedPrestamo.id, // 👈 ahora también enviamos el préstamo
+                personaId: selectedPrestamo.persona.id,
                 tipo_sancion: sancionData.tipo_sancion,
                 descripcion: sancionData.descripcion,
                 fecha_inicio: sancionData.fecha_inicio,
@@ -411,9 +419,7 @@ const prestamo = () => {
             });
 
             // Actualiza las listas
-            handleGetUsersSancionados();
             handleGetUsers();
-
             // Limpia el formulario
             setSancionData({
                 tipo_sancion: '',
@@ -423,7 +429,6 @@ const prestamo = () => {
                 estado: '',
             });
             setSelectedPrestamo(null);
-
             swal({
                 title: "¡Sanción al préstamo registrada!",
                 icon: "success",
@@ -439,8 +444,6 @@ const prestamo = () => {
             });
         }
     };
-
-
 
     return (
         <div className='prestamos'>
@@ -470,7 +473,6 @@ const prestamo = () => {
                                 <tr>
                                     <th scope="col">Nº</th>
                                     <th scope="col">Nombre</th>
-
                                     <th scope="col ">Documento</th>
                                     <th scope="col">Fecha devuelta</th>
                                     <th scope="col">Estado Libro</th>
@@ -489,7 +491,6 @@ const prestamo = () => {
                             </tbody>
                         </table>
                     </div>
-
                 </div>
                 <div className="modal fade" id="modalCrearSancionPrestamo" tabIndex="-1" aria-labelledby="modalCrearSancionPrestamoLabel" aria-hidden="true">
                     <div className="modal-dialog">
@@ -507,7 +508,6 @@ const prestamo = () => {
                                             className="form-select"
                                             id="tipoSancionPrestamo"
                                             value={sancionData.tipo_sancion}
-                                            
                                             onChange={(e) => setSancionData({ ...sancionData, tipo_sancion: e.target.value })}
                                         >
                                             <option value="">Seleccione una opción</option>
@@ -573,7 +573,6 @@ const prestamo = () => {
 
                 {/* aqui empieza modal prestamo reservas*/}
                 <div className={`modal fade`} id="modalPrestamoReservas" taindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -621,8 +620,6 @@ const prestamo = () => {
                                     <div className="mb-3">
                                         <input type="nombreEstudiante" className="form-control" id="nombreEstudiante" defaultValue={selectedOption?.nombre} disabled />
                                     </div>
-
-
                                 </form>
                             </div>
                             <div className="modal-footer">
@@ -634,7 +631,6 @@ const prestamo = () => {
                 </div>
                 {/* aqui empieza modal prestamo */}
                 <div className={`modal fade`} id="modalPrestamo" taindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
@@ -682,8 +678,6 @@ const prestamo = () => {
                                     <div className="mb-3">
                                         <input type="nombreEstudiante" className="form-control" id="nombreEstudiante" defaultValue={selectedOption?.nombre} disabled />
                                     </div>
-
-
                                 </form>
                             </div>
                             <div className="modal-footer">
@@ -794,10 +788,8 @@ const prestamo = () => {
                                                 className="btn btn-warning btn-sm"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#modalCrearSancionPrestamo"
-                                                onClick={() => setSelectedPrestamo(prestamo.id)} // guardas el id del préstamo seleccionado
-                                            >
-                                                Sancionar Préstamo
-
+                                                onClick={() => setSelectedPrestamo(prestamo)} // guardas el id del préstamo seleccionado
+                                            >Sancionar Préstamo
                                             </button>
                                         </td>
                                     </tr>

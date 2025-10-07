@@ -283,9 +283,6 @@ const documento = () => {
 
     const encontrado = [];
 
-
-
-
     const handleChange = (event) => {
         const text = event.target.value;
         setSearchText(text);
@@ -487,7 +484,6 @@ const documento = () => {
                     </div>
                 </div>
 
-
                 {/* editar DOCUMENTO */}
                 <div className='modal fade modalcont modalEdit' id="modalEditDocumento" taindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div className="modal-dialog ">
@@ -498,18 +494,15 @@ const documento = () => {
                             </div>
                             <div className="modal-body modalEdit">
                                 <form>
-
                                     <div className='row '>
                                         <div className="mb-3 col">
                                             <label htmlFor="titulo2" className="form-label">Título</label>
                                             <input type="text" className="form-control" id="titulo2" defaultValue={selecteDocument?.titulo} required />
                                         </div>
-
                                         <div className="mb-3 col">
                                             <label htmlFor="descripcion" className="form-label">Descripción</label>
                                             <input type="text" className="form-control" id="descripcion2" defaultValue={selecteDocument?.descripcion} required />
                                         </div>
-
                                     </div>
                                     <div className='row'>
                                         <div className="mb-3 col">
@@ -520,7 +513,6 @@ const documento = () => {
                                             <label htmlFor="codigo" className="form-label">Código</label>
                                             <input type="text" className="form-control" id="codigo2" defaultValue={selecteDocument?.codigo} required />
                                         </div>
-
                                     </div>
                                     <div className='row '>
                                         <div className="mb-3 col">
