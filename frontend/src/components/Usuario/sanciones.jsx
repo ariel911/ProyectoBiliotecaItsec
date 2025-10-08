@@ -21,19 +21,18 @@ const ListarLectores = () => {
   });
   const [estudiantes, setestudiantes] = useState([]);
   const [sanciones, setSanciones] = useState([]);
-  const [sanci, setSanci] = useState(0);
+  const [sancionado, setSancionado] = useState('');
   const [selectedUserSancion, setSelectedUserSancion] = useState('');
-
   const [historial, setHistorial] = useState([]);
   const [busqueda, setBusqueda] = useState("");
-
-
-
 
   useEffect(() => {
     handleGetHistorial();
     handleGetUsers();
     handleGetUsersSancionados();
+    // Formatear la fecha actual a YYYY-MM-DD
+    const hoy = new Date().toISOString().split("T")[0];
+    setSancionData((prev) => ({ ...prev, fecha_inicio: hoy }));
   }, [selectedUser]);
 
 
@@ -100,7 +99,7 @@ const ListarLectores = () => {
   };
   const sancionarEstudiante = (user) => {
     setSelectedUserSancion(user.id);
-
+    setSancionado(`${user.nombre}  ci:${user.ci}`)
 
   };
   const handleSancionarLector = async () => {
@@ -238,7 +237,14 @@ const ListarLectores = () => {
               <form>
                 {/* Tipo de sanción */}
                 <div className="mb-3">
+                  <label htmlFor="descripcion" className="form-label">Sancionado</label>
+                  <input type="text" className="form-control"
+                    value={sancionado} disabled />
+
+                </div>
+                <div className="mb-3">
                   <label htmlFor="tipoSancion" className="form-label">Tipo de Sanción</label>
+
                   <select
                     className="form-select"
                     id="tipoSancion"
@@ -265,29 +271,29 @@ const ListarLectores = () => {
                     placeholder="Detalles de la sanción..."
                   ></textarea>
                 </div>
-
                 {/* Fecha inicio */}
-                <div className="mb-3">
-                  <label htmlFor="fechaInicio" className="form-label">Fecha de Inicio</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    id="fechaInicio"
-                    value={sancionData.fecha_inicio}
-                    onChange={(e) => setSancionData({ ...sancionData, fecha_inicio: e.target.value })}
-                  />
-                </div>
-
-                {/* Fecha fin */}
-                <div className="mb-3">
-                  <label htmlFor="fechaFin" className="form-label">Fecha de Fin</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    id="fechaFin"
-                    value={sancionData.fecha_fin}
-                    onChange={(e) => setSancionData({ ...sancionData, fecha_fin: e.target.value })}
-                  />
+                <div className='row '>
+                  <div className="mb-3 col">
+                    <label htmlFor="fechaInicio" className="form-label">Fecha de Inicio</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      id="fechaInicio"
+                      value={sancionData.fecha_inicio}
+                      onChange={(e) => setSancionData({ ...sancionData, fecha_inicio: e.target.value })}
+                    />
+                  </div>
+                  {/* Fecha fin */}
+                  <div className="mb-3 col">
+                    <label htmlFor="fechaFin" className="form-label">Fecha de Fin</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      id="fechaFin"
+                      value={sancionData.fecha_fin}
+                      onChange={(e) => setSancionData({ ...sancionData, fecha_fin: e.target.value })}
+                    />
+                  </div>
                 </div>
               </form>
             </div>

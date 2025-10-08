@@ -36,7 +36,10 @@ const prestamo = () => {
     const [devoluciones, setDevoluciones] = useState([]);
     const id = localStorage.getItem('id');
 
-    const [fechaDevuelta, setFechaDevuelta] = useState('');
+    const [fechaDevuelta, setFechaDevuelta] = useState({
+        fecha_devuelta: ''
+    });
+
     const [fecha_prestamo, setFecha_prestamo] = useState('');
 
     const [estadoDocumento, setEstadoDocumento] = useState('');
@@ -50,6 +53,9 @@ const prestamo = () => {
         handleGetPrestamos();
         handleGetDevoluciones();
         document.getElementById('nombreEstudiante').defaultValue = selectedOption.nombre || '';
+        const hoy = new Date().toISOString().split("T")[0];
+        setFechaDevuelta((prev) => ({ ...prev, fecha_devuelta: hoy }));
+
 
         const getCurrentDateTime = (daysToAdd = 0) => {
             const now = new Date();
@@ -352,7 +358,6 @@ const prestamo = () => {
 
     const hadlePrestamo = (prest) => {
         setEstadoDocumento('');
-        setFechaDevuelta('')
         setPres(prest)
 
     }
@@ -382,7 +387,6 @@ const prestamo = () => {
         const nuevosPrestamos = prestamos.filter((prestamo) => prestamo.id !== pres.id);
         setPrestamos(nuevosPrestamos);
         setEstadoDocumento('');
-        setFechaDevuelta('')
         handleGetDevoluciones();
         handleGetPrestamos();
         swal({
@@ -736,9 +740,8 @@ const prestamo = () => {
                                 <form >
                                     <div className="mb-3">
                                         <label htmlFor="recipient-name" className="col-form-label">fecha devolución:</label>
-                                        <input type="datetime-local" className="form-control" id="fecha_devuelto" name="fecha_devuelto" value={pres?.fecha_devuelto} onChange={(e) =>
-                                            setFechaDevuelta(e.target.value)
-                                        } required />
+                                        <input type="date" className="form-control" id="fecha_devuelta" name="fecha_devuelta" value={fechaDevuelta.fecha_devuelta}
+                                            onChange={(e) => setFechaDevuelta({ ...fechaDevuelta, fecha_devuelta: e.target.value })} />
                                     </div>
 
                                     <div className="mb-3">
@@ -829,7 +832,6 @@ const prestamo = () => {
                                             <td>{documento?.formato?.nombre}</td>
                                             <td>
                                                 <button className='btn btn-secondary boton' data-bs-toggle="modal" data-bs-target="#modalPrestamo" data-bs-whatever="@mdo" onClick={() => sedHandleUsuario(documento)}>Prestar</button>
-
                                             </td>
                                         </tr>
                                     ))}
