@@ -25,7 +25,7 @@ import Backup from './components/backup/backup';
 import Cargar from './components/cargarEstudiantes/cargarestudiante';
 import Recuperacion from './components/recuperacion/recuperacion';
 
-import { HOME_INICIO,HOME_RECUPERACION,CARGAR, HOME_ITSEC,LOGIN,HOME_ESTADISTICAS,HOME_BACKUP, PAGINA_LIBRO, HOME_TIPO, HOME_AUTOR, HOME_ROL, HOME_ESTUDIANTE, HOME_CARRERA, HOME_FORMATO, HOME_AREA, HOME_SANCION, HOME_USUARIO, HOME_DOCUMENTO, HOME_LIBRO, HOME_PRESTAMO, LOGIN_BIBLIOTECA, HOME_REPORTES } from './routes/path';
+import { HOME_INICIO, HOME_RECUPERACION, CARGAR, HOME_ITSEC, LOGIN, HOME_ESTADISTICAS, HOME_BACKUP, PAGINA_LIBRO, HOME_TIPO, HOME_AUTOR, HOME_ROL, HOME_ESTUDIANTE, HOME_CARRERA, HOME_FORMATO, HOME_AREA, HOME_SANCION, HOME_USUARIO, HOME_DOCUMENTO, HOME_LIBRO, HOME_PRESTAMO, LOGIN_BIBLIOTECA, HOME_REPORTES } from './routes/path';
 const App = () => {
 
 
@@ -38,34 +38,34 @@ const App = () => {
   return (
     <>
       <BrowserRouter>
-
         <Routes>
           <Route path={LOGIN} element={<Login addToken={addToken} addUsuario={addUsuario} />} />
-          <Route path={PAGINA_LIBRO} element={<PaginaLibros/>} />
-          <Route path={CARGAR} element={<Cargar/>} />
-          <Route path={HOME_ITSEC} element={<PaginaItsec/>} />
-          <Route path={LOGIN_BIBLIOTECA} element={<LoginBiblio/>} />
+          <Route path={PAGINA_LIBRO} element={<PaginaLibros />} />
+          <Route path={CARGAR} element={<Cargar />} />
+          <Route path={HOME_ITSEC} element={<PaginaItsec />} />
+          <Route path={LOGIN_BIBLIOTECA} element={<LoginBiblio />} />
           <Route element={<ProtectedRoutes />}>
-            <Route path={HOME_INICIO} element={<div className='contenedor2'><Home usuario={usuario}/> <Entrada /> </div>} />
-            <Route path={HOME_ROL} element={<div className='contenedor2'><Home /> <Rol /> </div>} />
-            <Route path={HOME_ESTUDIANTE} element={<div className='contenedor2'><Home /> <Estudiante /> </div>} />
-            <Route path={HOME_CARRERA} element={<div className='contenedor2'><Home /> <Carrera /> </div>} />
-            <Route path={HOME_FORMATO} element={<div className='contenedor2'><Home /> <Formato /> </div>} />
-            <Route path={HOME_AREA} element={<div className='contenedor2'><Home /> <Area /> </div>} />
-            <Route path={HOME_AUTOR} element={<div className='contenedor2'><Home /> <Autor /> </div>} />
-            <Route path={HOME_SANCION} element={<div className='contenedor2'><Home /> <Sancion /> </div>} />
-            <Route path={HOME_USUARIO} element={<div className='contenedor2'><Home /> <Usuario /> </div>} />
-            <Route path={HOME_DOCUMENTO} element={<div className='contenedor2'><Home /> <Documento /> </div>} />
-            <Route path={HOME_LIBRO} element={<div className='contenedor2'><Home /> <Libro /> </div>} />
-            <Route path={HOME_PRESTAMO} element={<div className='contenedor2'><Home /> <Prestamo /> </div>} />
-            <Route path={HOME_ESTADISTICAS} element={<div className='contenedor2'><Home /> <Estadisticas /> </div>} />
-            <Route path={HOME_REPORTES} element={<div className='contenedor2'><Home /> <Reportes /> </div>} />
-            <Route path={HOME_TIPO} element={<div className='contenedor2'><Home /> <Tipo /> </div>} />
-            <Route path={HOME_BACKUP} element={<div className='contenedor2'><Home /> <Backup /> </div>} />
-            <Route path={HOME_RECUPERACION} element={<div className='contenedor2'><Home /> <Recuperacion /> </div>} />
+            <Route path="/homeInicio" element={<Home />}>
+              <Route path={HOME_INICIO} index element={<Entrada /> } />
+              <Route path={HOME_ROL} element={<Rol />} />
+              <Route path={HOME_ESTUDIANTE} element={<Estudiante />} />
+              <Route path={HOME_CARRERA} element={<Carrera />} />
+              <Route path={HOME_FORMATO} element={<Formato />} />
+              <Route path={HOME_AREA} element={<Area />} />
+              <Route path={HOME_AUTOR} element={<Autor />} />
+              <Route path={HOME_SANCION} element={<Sancion />} />
+              <Route path={HOME_USUARIO} element={<Usuario />} />
+              <Route path={HOME_DOCUMENTO} element={<Documento />} />
+              <Route path={HOME_LIBRO} element={<Libro />} />
+              <Route path={HOME_PRESTAMO} element={<Prestamo />} />
+              <Route path={HOME_ESTADISTICAS} element={<Estadisticas />} />
+              <Route path={HOME_REPORTES} element={<Reportes /> } />
+              <Route path={HOME_TIPO} element={<Tipo />} />
+              <Route path={HOME_BACKUP} element={<Backup /> } />
+              <Route path={HOME_RECUPERACION} element={<Recuperacion />} />
+            </Route>
           </Route>
-
-        <Route path='*' element={<Navigate to='/login' />} />
+          <Route path='*' element={<Navigate to='/login' />} />
         </Routes>
       </BrowserRouter>
     </>
@@ -73,3 +73,4 @@ const App = () => {
 }
 
 export default App
+  

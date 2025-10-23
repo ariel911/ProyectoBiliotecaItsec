@@ -1,63 +1,59 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import NavBar2 from '../../components/navBar/NavBar2';
 import ImgPerfil from '../../components/imgPerfil/imgPerfil';
-import './Home.css'
+import './Home.css';
 import logo from "../../assets/logo2.png";
-
-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAngleRight, faBookOpenReader } from '@fortawesome/free-solid-svg-icons'
-import { Link } from 'react-router-dom';
-const Home = ({ usuario }) => {
-  const token = localStorage.getItem('token');
+import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { Outlet } from 'react-router-dom'; // 👈 importante importar esto
+
+const Home = () => {
   const nombre = localStorage.getItem('nombre');
   const rol = localStorage.getItem('Rol');
- 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
+    <div className='layout-principal'>
+      {/* 🔵 Barra Superior */}
+      <div className="barraSup d-flex align-items-center justify-content-between px-4">
+        <div className="d-flex align-items-center">
+          <button className="btn btn-outline-light d-lg-none me-3" onClick={toggleSidebar}>
+            <FontAwesomeIcon icon={faBars} />
+          </button>
+          <img src={logo} alt="Logo Biblioteca" className="logo" />
+        </div>
 
-    <>
-
-      <div className='barraSup'>
-
-        <img src={logo} className='logo' />
-        <div className='imgPerfil'>
+        <div className="d-flex align-items-center perfil-container">
           <ImgPerfil />
-          <div className='nombres'>
-            <p className='span1'>{nombre}</p>
-            <p className='span2'>{rol}</p>
+          <div className="nombres">
+            <p className="span1">{nombre}</p>
+            <p className="span2">{rol}</p>
           </div>
-
-
         </div>
       </div>
-      <div className='navegacion navbar' >
-        <Link to={'/homeInicio'}>
-          <div className='mibiblio'>
-            <FontAwesomeIcon className='iconobiblio' icon={faBookOpenReader} style={{ "--fa-primary-color": "#ffffff", "--fa-secondary-color": "#b0b0b0", }} />
-            <h3>BIBLIOTECA</h3>
-          </div>
-        </Link>
 
-
-
-        <nav className='men'>
-
-          <NavBar2 brand={['Inicio', 'Usuarios', 'Prestamos', 'Documentos', 'Formato Docs', 'Carrera', 'Área', 'Tipo Documento']} />
-
-        </nav>
+      {/* 🧭 Menú lateral */}
+      <div className={`navegacion ${sidebarOpen ? 'open' : ''}`}>
+        <NavBar2
+          brand={[
+            'Inicio',
+            'Usuarios',
+            'Prestamos',
+            'Documentos',
+            'Formato Docs',
+            'Áreas y autores',
+          ]}
+        />
       </div>
 
-      {/* <Entrada/> */}
+      {/* 📄 Contenido principal */}
+      <div className="contenido flex-grow-1 p-4 contenido-principal animate__animated animate__fadeInUp">
+        <Outlet /> {/* 👈 Aquí se renderizan tus componentes dinámicos */}
+      </div>
+    </div>
+  );
+};
 
-
-      {/* <button >Cerrar Sesion</button> */}
-      {/* <Perfil /> */}
-
-    </>
-
-
-  )
-}
-
-export default Home
+export default Home;

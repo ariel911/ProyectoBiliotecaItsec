@@ -1,308 +1,413 @@
-import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import swal from 'sweetalert';
-import "./sanciones.css"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import swal from "sweetalert";
+import './rol.css'
 
-const ListarLectores = () => {
-  const token = localStorage.getItem('token');
-  const [selectedUser, setSelectedUser] = useState(null);
+const Sanciones = () => {
   const [sancionData, setSancionData] = useState({
-    tipo_sancion: '',
-    descripcion: '',
-    fecha_inicio: '',
-    fecha_fin: '',
-    estado: '',
+    tipo_sancion: "",
+    descripcion: "",
+    fecha_inicio: "",
+    fecha_fin: "",
   });
-  const [selectedPersona, setSelectedPersona] = useState(null);
+  const [estudiantes, setEstudiantes] = useState([]);
+  const [sanciones, setSanciones] = useState([]);
+  const [historial, setHistorial] = useState([]);
+  const [busquedaEstudiante, setBusquedaEstudiante] = useState("");
+  const [busquedaSancionado, setBusquedaSancionado] = useState("");
+  const [busquedaHistorial, setBusquedaHistorial] = useState("");
+  const [sancionado, setSancionado] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
   const [quitarData, setQuitarData] = useState({
     motivo_levantamiento: "",
     fecha_levantamiento: new Date().toISOString().split("T")[0],
-    estado: "1", // 👈 ahora estado 1
+    estado: "1",
   });
-  const [estudiantes, setestudiantes] = useState([]);
-  const [sanciones, setSanciones] = useState([]);
-  const [sancionado, setSancionado] = useState('');
-  const [selectedUserSancion, setSelectedUserSancion] = useState('');
-  const [historial, setHistorial] = useState([]);
-  const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
-    handleGetHistorial();
-    handleGetUsers();
-    handleGetUsersSancionados();
-    // Formatear la fecha actual a YYYY-MM-DD
-    const hoy = new Date().toISOString().split("T")[0];
-    setSancionData((prev) => ({ ...prev, fecha_inicio: hoy }));
-  }, [selectedUser]);
+    cargarDatos();
+  }, []);
 
-
-  // Abrir modal
-  const abrirModalQuitar = (persona) => {
-    setSelectedPersona(persona);
-    setQuitarData({
-      motivo_levantamiento: "",
-      fecha_levantamiento: new Date().toISOString().split("T")[0],
-      estado: "1", // 👈 se mantiene en 1
-    });
-
-    const modal = new window.bootstrap.Modal(
-      document.getElementById("modalQuitarSancion")
-    );
-    modal.show();
+  const cargarDatos = async () => {
+    await Promise.all([getEstudiantes(), getSanciones(), getHistorial()]);
   };
 
-  // Confirmar quitar sanción
-  const confirmarQuitarSancion = async () => {
-    try {
-      // 1️⃣ Guardar en sancion_historial
-      await axios.post("http://localhost:8000/api/sancion_historial", {
-        ...quitarData,
-        sancionId: selectedPersona.sancionId, // si tienes relación sancion_historial → sancion
-        personaId: selectedPersona.id,
-        prestamoId: null        // si tienes relación sancion_historial → persona
-      });
-
-
-      swal("Éxito", "La sanción fue levantada y registrada en historial ✅", "success");
-
-      handleGetUsers(); // refresca listado de personas
-      // handleGetHistorial(); // si tienes tabla de historial
-    } catch (error) {
-      console.error(error);
-      swal("Error", "No se pudo quitar la sanción ❌", "error");
-    }
+  const getEstudiantes = async () => {
+    const res = await axios.get("http://localhost:8000/api/persona");
+    setEstudiantes(res.data.data.personas);
   };
 
-
-  //lectores sancionados
-  const handleGetUsersSancionados = async () => {
-    const res = await axios({
-      url: "http://localhost:8000/api/sancion/",
-      method: "GET",
-      /*       headers: {
-              Authorization: `Bearer ${token}`,
-            }, */
-    });
+  const getSanciones = async () => {
+    const res = await axios.get("http://localhost:8000/api/sancion");
     setSanciones(res.data.data.sancion);
   };
 
-  const handleGetUsers = async () => {
-    const res = await axios({
-      url: "http://localhost:8000/api/persona",
-      method: "GET",
-      /*       headers: {
-              Authorization: `Bearer ${token}`,
-            }, */
-    });
-    setestudiantes(res.data.data.personas);
-
+  const getHistorial = async () => {
+    const res = await axios.get("http://localhost:8000/api/sancion_historial");
+    setHistorial(res.data.data.sancion_historial);
   };
+
   const sancionarEstudiante = (user) => {
-    setSelectedUserSancion(user.id);
-    setSancionado(`${user.nombre}  ci:${user.ci}`)
-
+    setSelectedUser(user);
+    setSancionado(`${user.nombre} (CI: ${user.ci})`);
   };
-  const handleSancionarLector = async () => {
+
+  const handleSancionar = async () => {
+    if (!selectedUser) return;
     try {
-
-      await axios({
-        url: `http://localhost:8000/api/sancion`,
-        method: 'POST',
-        /*           headers: {
-                    Authorization: `Bearer ${token}`,
-                  }, */
-        data: {
-          personaId: selectedUserSancion,
-          tipo_sancion: sancionData.tipo_sancion,
-          descripcion: sancionData.descripcion,
-          fecha_inicio: sancionData.fecha_inicio,
-          fecha_fin: sancionData.fecha_fin,
-          estado: '1',
-        },
+      await axios.post("http://localhost:8000/api/sancion", {
+        personaId: selectedUser.id,
+        tipo_sancion: sancionData.tipo_sancion,
+        descripcion: sancionData.descripcion,
+        fecha_inicio: sancionData.fecha_inicio,
+        fecha_fin: sancionData.fecha_fin,
+        estado: "1",
       });
-
-      // Actualiza la lista de estudiantes sancionados
-      handleGetUsersSancionados();
-      handleGetUsers();
-      setSancionData({
-        tipo_sancion: '',
-        descripcion: '',
-        fecha_inicio: '',
-        fecha_fin: '',
-        estado: '',
-      });
-      swal({
-        title: "Sancion agregado correctamente!",
-        icon: "success",
-        button: "Ok",
-      });
-      setSelectedUser(null);
-    } catch (error) {
-      // Maneja cualquier error
-      console.error(error);
-      alert('Error al sancionar al lector');
+      swal("✅ Sanción registrada correctamente", "", "success");
+      cargarDatos();
+    } catch (err) {
+      console.error(err);
+      swal("❌ Error al registrar sanción", "", "error");
     }
   };
 
-  const handleGetHistorial = async () => {
+  const abrirModalQuitar = (sancion) => {
+    setSelectedUser(sancion);
+    setQuitarData({
+      motivo_levantamiento: "",
+      fecha_levantamiento: new Date().toISOString().split("T")[0],
+      estado: "1",
+    });
+    new window.bootstrap.Modal(
+      document.getElementById("modalQuitarSancion")
+    ).show();
+  };
+
+  const confirmarQuitarSancion = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/sancion_historial");
-      setHistorial(res.data.data.sancion_historial);
-    } catch (error) {
-      console.error(error);
+      await axios.post("http://localhost:8000/api/sancion_historial", {
+        ...quitarData,
+        sancionId: selectedUser.id,
+        personaId: selectedUser.persona.id,
+        prestamoId: null,
+      });
+      swal("✅ Sanción levantada con éxito", "", "success");
+      cargarDatos();
+    } catch (err) {
+      console.error(err);
+      swal("❌ Error al levantar sanción", "", "error");
     }
   };
 
-  const handleEdit = (item) => {
-    setMotivo(item.motivo_levantamiento);
-    setFecha(item.fecha_levantamiento);
-    setEstado(item.estado);
-    setEditId(item.id);
-  };
+  // 🔎 Filtros
+  const qEst = (busquedaEstudiante || "").trim().toLowerCase();
+  const qSanc = (busquedaSancionado || "").trim().toLowerCase();
+  const qHist = (busquedaHistorial || "").trim().toLowerCase();
+  const estudiantesFiltrados = estudiantes.filter((e) => {
+    // convertir a string y normalizar
+    const nombre = String(e.nombre || "").toLowerCase();
+    const ci = String(e.ci ?? "").toLowerCase();
+    const correo = String(e.correo || "").toLowerCase();
 
-  const handleSearch = (e) => {
-    setBusqueda(e.target.value);
-  };
+    if (!qEst) return true; // si no hay query, mostrar todo
+    return (
+      nombre.includes(qEst) ||
+      ci.includes(qEst) ||
+      correo.includes(qEst)
+    );
+  });
+  // Filtrado sancionados (tabla "Sancionados")
+  const sancionesFiltradas = sanciones.filter((s) => {
+    const nombre = String(s.persona?.nombre || "").toLowerCase();
+    const ci = String(s.persona?.ci ?? "").toLowerCase();
+    const correo = String(s.persona?.correo || "").toLowerCase();
 
-  const historialFiltrado = historial?.filter((h) =>
-    h.motivo_levantamiento?.toLowerCase().includes(busqueda.toLowerCase())
-  );
+    if (!qSanc) return true;
+    return (
+      nombre.includes(qSanc) ||
+      ci.includes(qSanc) ||
+      correo.includes(qSanc)
+    );
+  });
+  // Filtrado historial
+  const historialFiltrado = historial.filter((h) => {
+    const nombre = String(h.sancion?.persona?.nombre || "").toLowerCase();
+    const motivo = String(h.motivo_levantamiento || "").toLowerCase();
+
+    if (!qHist) return true;
+    return (
+      nombre.includes(qHist) ||
+      motivo.includes(qHist)
+    );
+  });
+
   return (
-    <div className='sanciones'>
-      {/* moldal para sancionar lector */}
-      <h1 className="tituloSancion">Sancion</h1>
+    <div className="container py-4 sancion">
+      <h2 className="text-center mb-4 fw-bold">Gestión de Sanciones</h2>
+      {/* Tabs */}
       <ul className="nav nav-tabs" role="tablist">
         <li className="nav-item">
-          <a className="nav-link active" data-bs-toggle="tab" href="#listar" role="tab">Sancionar</a>
+          <a className="nav-link active" data-bs-toggle="tab" href="#tab1">
+            <i className="bi bi-person-x-fill me-1"></i> Sancionar
+          </a>
         </li>
         <li className="nav-item">
-          <a className="nav-link" data-bs-toggle="tab" href="#sancionados" role="tab">Sancionados</a>
+          <a className="nav-link" data-bs-toggle="tab" href="#tab2">
+            <i className="bi bi-people-fill me-1"></i> Sancionados
+          </a>
         </li>
         <li className="nav-item">
-          <a className="nav-link" data-bs-toggle="tab" href="#listarhistorial" role="tab">Historial Sancionados</a>
+          <a className="nav-link" data-bs-toggle="tab" href="#tab3">
+            <i className="bi bi-clock-history me-1"></i> Historial
+          </a>
         </li>
       </ul>
-      {/* modal para quitar sancion */}
-      <div className="modal fade" id="modalQuitarSancion" tabIndex="-1" aria-hidden="true">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5">Quitar sanción</h1>
-              <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+
+      <div className="tab-content mt-3">
+        {/* TAB 1 - SANCIONAR */}
+
+
+        <div className="tab-pane fade show active" id="tab1">
+          <div className="card shadow-sm p-4 mb-4">
+            <input
+              type="text"
+              className="form-control mb-3"
+              placeholder="Buscar estudiante por nombre, CI o correo..."
+              value={busquedaEstudiante}
+              onChange={(e) => setBusquedaEstudiante(e.target.value)}
+            />
+            <div className="table-responsive" style={{ maxHeight: "400px" }}>
+              <table className="table table-hover align-middle">
+                <thead className="table-dark sticky-top">
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>CI</th>
+                    <th>Celular</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {estudiantesFiltrados
+                    ?.filter((e) => e.estado == 1)
+                    .map((e, i) => (
+                      <tr key={e.id}>
+                        <td>{i + 1}</td>
+                        <td>{e.nombre}</td>
+                        <td>{e.correo}</td>
+                        <td>{e.ci}</td>
+                        <td>{e.celular}</td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-secondary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalSancionar"
+                            onClick={() => sancionarEstudiante(e)}
+                          >
+                            <i className="bi bi-exclamation-circle me-1"></i>
+                            Sancionar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
             </div>
-            <div className="modal-body">
-              <div className="mb-3">
-                <label className="form-label">Motivo levantamiento</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={quitarData.motivo_levantamiento}
-                  onChange={(e) =>
-                    setQuitarData({ ...quitarData, motivo_levantamiento: e.target.value })
-                  }
-                />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Fecha levantamiento</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  value={quitarData.fecha_levantamiento}
-                  onChange={(e) =>
-                    setQuitarData({ ...quitarData, fecha_levantamiento: e.target.value })
-                  }
-                />
-              </div>
+          </div>
+        </div>
+
+        {/* TAB 2 - SANCIONADOS */}
+        <div className="tab-pane fade" id="tab2">
+          <div className="card shadow-sm p-4 mb-4">
+            <input
+              type="text"
+              className="form-control mb-3"
+              placeholder="Buscar sancionado por nombre, CI o correo..."
+              value={busquedaSancionado}
+              onChange={(e) => setBusquedaSancionado(e.target.value)}
+            />
+            <div className="table-responsive" style={{ maxHeight: '540px', overflowY: 'auto' }}>
+              <table className="table table-hover align-middle">
+                <thead className="table-dark sticky-top">
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Sanción</th>
+                    <th>Descripción</th>
+                    <th>CI</th>
+                    <th>Celular</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sancionesFiltradas
+                    ?.filter((s) => s.estado == 1)
+                    .map((s, i) => (
+                      <tr key={s.id}>
+                        <td>{i + 1}</td>
+                        <td>{s.persona?.nombre}</td>
+                        <td>{s.tipo_sancion}</td>
+                        <td>{s.descripcion}</td>
+                        <td>{s.persona?.ci}</td>
+                        <td>{s.persona?.celular}</td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-warning"
+                            onClick={() => abrirModalQuitar(s)}
+                          >
+                            <i className="bi bi-x-circle me-1"></i>
+                            Quitar sanción
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
             </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
-                Cancelar
-              </button>
-              <button type="button" className="btn btn-success" onClick={confirmarQuitarSancion}>
-                Confirmar
-              </button>
+          </div>
+        </div>
+
+        {/* TAB 3 - HISTORIAL */}
+
+        <div className="tab-pane fade" id="tab3">
+          <div className="card shadow-sm p-4 mb-4">
+            <input
+              type="text"
+              className="form-control mb-3"
+              placeholder="Buscar por nombre o motivo..."
+              value={busquedaHistorial}
+              onChange={(e) => setBusquedaHistorial(e.target.value)}
+            />
+            <div className="table-responsive" style={{ maxHeight: "400px" }}>
+              <table className="table table-striped align-middle">
+                <thead className="table-dark sticky-top">
+                  <tr>
+                    <th>#</th>
+                    <th>Sanción</th>
+                    <th>Sancionado</th>
+                    <th>Motivo</th>
+                    <th>Fecha Levantamiento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {historialFiltrado.map((h, i) => (
+                    <tr key={h.id}>
+                      <td>{i + 1}</td>
+                      <td>{h.sancion?.tipo_sancion}</td>
+                      <td>{h.sancion?.persona?.nombre}</td>
+                      <td>{h.motivo_levantamiento}</td>
+                      <td>{h.fecha_levantamiento?.slice(0, 10)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="modal fade" id="modalCrearSancion" tabIndex="-1" aria-labelledby="modalCrearSancionLabel" aria-hidden="true">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="modalCrearSancionLabel">Sancion a Estudiante</h1>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+      {/* MODAL SANCIONAR */}
+      <div
+        className="modal fade"
+        id="modalSancionar"
+        tabIndex="-1"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content border-0 shadow">
+            <div className="modal-header bg-primary text-white">
+              <h5 className="modal-title">
+                <i className="bi bi-person-dash-fill me-2"></i> Sancionar
+                Estudiante
+              </h5>
+              <button
+                type="button"
+                className="btn-close btn-close-white"
+                data-bs-dismiss="modal"
+              ></button>
             </div>
             <div className="modal-body">
-              <form>
-                {/* Tipo de sanción */}
-                <div className="mb-3">
-                  <label htmlFor="descripcion" className="form-label">Sancionado</label>
-                  <input type="text" className="form-control"
-                    value={sancionado} disabled />
-
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="tipoSancion" className="form-label">Tipo de Sanción</label>
-
-                  <select
-                    className="form-select"
-                    id="tipoSancion"
-                    value={sancionData.tipo_sancion}
-                    onChange={(e) => setSancionData({ ...sancionData, tipo_sancion: e.target.value })}>
-                    <option value="">Seleccione una opción</option>
-                    <option value="Tomar fotos a proyectos">Tomar fotos a proyectos</option>
-                    <option value="Manipular documento sin permiso">Manipular documento sin permiso</option>
-                    <option value="Impresión de documentos no permitidos">Impresión de documentos no permitidos</option>
-                    <option value="No respetar el orden del lugar">No respetar el orden del lugar</option>
-                    <option value="Bulla excesiva">Bulla excesiva</option>
-                    <option value="Otro">Otro</option>
-                  </select>
-                </div>
-                {/* Descripción */}
-                <div className="mb-3">
-                  <label htmlFor="descripcion" className="form-label">Descripción</label>
-                  <textarea
+              <p className="fw-semibold">{sancionado}</p>
+              <div className="mb-3">
+                <label className="form-label">Tipo de sanción</label>
+                <select
+                  className="form-select"
+                  value={sancionData.tipo_sancion}
+                  onChange={(e) =>
+                    setSancionData({
+                      ...sancionData,
+                      tipo_sancion: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="Tomar fotos a proyectos">
+                    Tomar fotos a proyectos
+                  </option>
+                  <option value="Manipular documento sin permiso">
+                    Manipular documento sin permiso
+                  </option>
+                  <option value="Bulla excesiva">Bulla excesiva</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Descripción</label>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  value={sancionData.descripcion}
+                  onChange={(e) =>
+                    setSancionData({
+                      ...sancionData,
+                      descripcion: e.target.value,
+                    })
+                  }
+                ></textarea>
+              </div>
+              <div className="row">
+                <div className="col">
+                  <label className="form-label">Inicio</label>
+                  <input
+                    type="date"
                     className="form-control"
-                    id="descripcion"
-                    rows="3"
-                    value={sancionData.descripcion}
-                    onChange={(e) => setSancionData({ ...sancionData, descripcion: e.target.value })}
-                    placeholder="Detalles de la sanción..."
-                  ></textarea>
+                    value={sancionData.fecha_inicio}
+                    onChange={(e) =>
+                      setSancionData({
+                        ...sancionData,
+                        fecha_inicio: e.target.value,
+                      })
+                    }
+                  />
                 </div>
-                {/* Fecha inicio */}
-                <div className='row '>
-                  <div className="mb-3 col">
-                    <label htmlFor="fechaInicio" className="form-label">Fecha de Inicio</label>
-                    <input
-                      type="date"
-                      className="form-control"
-                      id="fechaInicio"
-                      value={sancionData.fecha_inicio}
-                      onChange={(e) => setSancionData({ ...sancionData, fecha_inicio: e.target.value })}
-                    />
-                  </div>
-                  {/* Fecha fin */}
-                  <div className="mb-3 col">
-                    <label htmlFor="fechaFin" className="form-label">Fecha de Fin</label>
-                    <input
-                      type="date"
-                      className="form-control"
-                      id="fechaFin"
-                      value={sancionData.fecha_fin}
-                      onChange={(e) => setSancionData({ ...sancionData, fecha_fin: e.target.value })}
-                    />
-                  </div>
+                <div className="col">
+                  <label className="form-label">Fin</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={sancionData.fecha_fin}
+                    onChange={(e) =>
+                      setSancionData({
+                        ...sancionData,
+                        fecha_fin: e.target.value,
+                      })
+                    }
+                  />
                 </div>
-              </form>
+              </div>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
               <button
-                type="submit"
+                className="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancelar
+              </button>
+              <button
                 className="btn btn-primary"
-                onClick={handleSancionarLector}
+                onClick={handleSancionar}
                 data-bs-dismiss="modal"
               >
                 Guardar
@@ -312,140 +417,65 @@ const ListarLectores = () => {
         </div>
       </div>
 
-      {/* modal para agregar nueva sancion */}
-      <div className="tab-content">
-        {/* tabla */}
-        <div className={`tab-pane fade show active`} id='listar'>
-          <div className="tablaSanciones table-responsive mt-3">
-            <table className="table table-fixed">
-              <thead className="table-dark sticky-top">
-                <tr>
-                  <th scope="col">Nº</th>
-                  <th scope="col">Nombre</th>
-                  <th scope="col ">Correo</th>
-                  <th scope="col">celular</th>
-                  <th scope="col">Carnet CI</th>
-                  <th scope="col">Accion</th>
-                </tr>
-              </thead>
-              <tbody>
-                {estudiantes
-                  ?.filter(estudiante => estudiante.estado == 1)
-                  .map((estudiante, index) => (
-                    <tr key={estudiante.id}>
-                      <td>{index + 1}</td>
-                      <td>{estudiante.nombre}</td>
-                      <td>{estudiante.correo}</td>
-                      <td>{estudiante.celular}</td>
-                      <td>{estudiante.ci}</td>
-                      <td>
-                        <button
-                          className='btn btn-secondary boton'
-                          data-bs-toggle="modal"
-                          data-bs-target="#modalCrearSancion"
-                          onClick={() => sancionarEstudiante(estudiante)}
-                        >
-                          Sancionar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-
-            </table>
-          </div>
-        </div>
-
-        {/*historial sancion */}
-        <div className="tab-pane fade" id="listarhistorial" role="tabpanel">
-          <div className="mt-4">
-            <input
-              type="text"
-              className="form-control mb-3"
-              placeholder="Buscar por motivo..."
-              value={busqueda}
-              onChange={handleSearch}
-            />
-            <div className="table-responsive tablaHistorial">
-              <table className="table table-bordered">
-                <thead className="table-dark">
-                  <tr>
-                    <th>Nº</th>
-                    <th>Sancion</th>
-                    <th>Sancionado</th>
-                    <th>Correo</th>
-                    <th>Levantamiento</th>
-                    <th>Fecha Levantamiento</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {historialFiltrado?.map((h, index) => h.estado == 1 && (
-                    <tr key={h.id}>
-                      <td>{index + 1}</td>
-                      <td>{h.sancion?.tipo_sancion}</td>
-                      <td>{h.sancion?.persona.nombre}</td>
-                      <td>{h.sancion?.persona.correo}</td>
-                      <td>{h.motivo_levantamiento}</td>
-                      <td>{h.fecha_levantamiento.slice(0, 10)}</td>
-                      <td>
-                        <button
-                          className="btn btn-warning me-2"
-                          onClick={() => handleEdit(h)}
-                        >
-                          Editar
-                        </button>
-                        {/* Si quieres eliminar físicamente, agrega un delete aquí */}
-                      </td>
-                    </tr>
-                  ))}
-                  {historialFiltrado.length === 0 && (
-                    <tr>
-                      <td colSpan="5" className="text-center">
-                        No hay registros
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+      {/* MODAL QUITAR SANCION */}
+      <div className="modal fade" id="modalQuitarSancion" tabIndex="-1" aria-hidden="true">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content border-0 shadow">
+            <div className="modal-header bg-warning text-dark">
+              <h5 className="modal-title">
+                <i className="bi bi-x-circle-fill me-2"></i> Quitar sanción
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+              ></button>
             </div>
-          </div>
-        </div>
-        {/* ver sancionados */}
-        <div className={`tab-pane fade `} id='sancionados'>
-          <div className="tablaSanciones table-responsive mt-3">
-            <table className="table table-fixed">
-              <thead className="table-dark sticky-top">
-                <tr>
-                  <th scope="col">Nº</th>
-                  <th scope="col">Nombre</th>
-                  <th scope="col ">Correo</th>
-                  <th scope="col">celular</th>
-                  <th scope="col">Carnet CI</th>
-                  <th scope="col">Accion</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sanciones?.map((sancion, index) => sancion.estado == 1 && (
-                  <tr key={sancion.id}>
-                    <td>{index + 1}</td>
-                    <td>{sancion?.persona?.nombre}</td>
-                    <td>{sancion?.persona?.correo}</td>
-                    <td>{sancion?.persona?.celular}</td>
-                    <td>{sancion?.persona?.ci}</td>
-                    <td>
-                      <button className="btn btn-warning" onClick={() =>
-                        abrirModalQuitar({
-                          id: sancion.persona.id,
-                          nombre: sancion.persona.nombre,
-                          sancionId: sancion.id, // 👈 se manda también el id de sanción
-                        })
-                      }>Quitar sanción</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="modal-body">
+              <div className="mb-3">
+                <label className="form-label">Motivo del levantamiento</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={quitarData.motivo_levantamiento}
+                  onChange={(e) =>
+                    setQuitarData({
+                      ...quitarData,
+                      motivo_levantamiento: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Fecha</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  value={quitarData.fecha_levantamiento}
+                  onChange={(e) =>
+                    setQuitarData({
+                      ...quitarData,
+                      fecha_levantamiento: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn btn-success"
+                onClick={confirmarQuitarSancion}
+                data-bs-dismiss="modal"
+              >
+                Confirmar
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -453,4 +483,4 @@ const ListarLectores = () => {
   );
 };
 
-export default ListarLectores;
+export default Sanciones;

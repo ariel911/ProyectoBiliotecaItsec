@@ -10,6 +10,7 @@ router.post('/', documentoController.crear)
 router.put('/:id', documentoController.update)
 router.delete('/:id', documentoController.eliminar)
 router.put('/baja/:id', documentoController.darBaja)
+router.put('/actualizarDoc/:id', documentoController.actualizarDoc)
 
 
 

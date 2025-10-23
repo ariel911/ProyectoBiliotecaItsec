@@ -13,6 +13,27 @@ module.exports = {
             model: models.persona, // Agregar modelo de usuarios
             attributes: ['id', 'nombre', 'correo', 'ci', 'celular', 'estado'],
           },
+          {
+            model: models.prestamo, // Agregar modelo de usuarios
+            attributes: ['id', 'garantia', 'estado', 'fecha_prestamo', 'fecha_devolucion'],
+            include: [
+              {
+                model: models.usuario, // Agregar modelo de usuarios
+                attributes: ['id', 'nombre', 'estado'], // Especificar las columnas que se desean obtener
+              },
+              {
+                model: models.documento,
+                attributes: ['id', 'descripcion', 'titulo', 'estado']
+
+              },
+              {
+                model: models.persona,
+                attributes: ['id', 'nombre', 'correo', 'estado']
+
+              },
+            ],
+          },
+
 
         ],
       });

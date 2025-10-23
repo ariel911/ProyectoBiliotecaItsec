@@ -23,14 +23,12 @@ const ReporteDocumentos = () => {
     const [estadosR, setEstadosR] = useState({ activos: true, inactivos: true, eliminados: false });
     const [mesR, setMesR] = useState('');
     const [anioR, setAnioR] = useState('');
-
     const [reservas, setReservas] = useState([]);
-
-
     const [estudiantes, setEstudiantes] = useState([]);
     const [tipoPersonas, settipoPersonas] = useState([]);
     const [selectedCarrera, setSelectedCarrera] = useState("");
     const [selectedTipoPersona, setSelectedTipoPersona] = useState("");
+    const [selectedEstadoPersona, setSelectedEstadoPersona] = useState("todos");
 
     useEffect(() => {
         handleGetDocuments();
@@ -44,18 +42,15 @@ const ReporteDocumentos = () => {
             const fechaReserva = new Date(reserva.fecha_reserva);
             const reservaMes = fechaReserva.getMonth() + 1;
             const reservaAnio = fechaReserva.getFullYear();
-
             // Verificar si la reserva coincide con los estados seleccionados
             const estadoMatch = (
                 (estados.activos && reserva.estado === 1) ||
                 (estados.inactivos && reserva.estado === 0) ||
                 (estados.eliminados && reserva.estado === 2)
             );
-
             // Verificar si la reserva coincide con el mes y el año seleccionados
             const mesMatch = mesR ? parseInt(mesR) === reservaMes : true;
             const anioMatch = anioR ? parseInt(anioR) === reservaAnio : true;
-
             return estadoMatch && mesMatch && anioMatch;
         });
 
@@ -106,25 +101,19 @@ const ReporteDocumentos = () => {
         }
     };
 
-
-
-
     // Manejar cambios en los checkboxes de estado
     const handleEstadoChange = (e) => {
         const { name, checked } = e.target;
         setEstados(prev => ({ ...prev, [name]: checked }));
     };
-
     // Manejar cambios en el filtro de carrera
     const handleCarreraChange = (e) => {
         setCarrera(e.target.value);
     };
-
     // Función para exportar a Excel con ExcelJS
     const exportToExcel = async () => {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet("Documentos");
-
         // Agregar encabezados
         worksheet.columns = [
             { header: 'ID', key: 'id', width: 10 },
@@ -141,11 +130,10 @@ const ReporteDocumentos = () => {
             { header: 'Tipo de Documento', key: 'tipo_doc', width: 20 },
             { header: 'Autor(es)', key: 'autores', width: 30 }
         ];
-
         // Agregar datos
-        filteredDocs.forEach((doc,index) => {
+        filteredDocs.forEach((doc, index) => {
             worksheet.addRow({
-                id: index+1,
+                id: index + 1,
                 titulo: doc.titulo,
                 cantidad: doc.cantidad,
                 anio_edicion: new Date(doc.anio_edicion).toLocaleDateString(),
@@ -160,7 +148,6 @@ const ReporteDocumentos = () => {
                 autores: doc.documento_autors.map(da => da.autor.nombre).join(', ')
             });
         });
-
         // Estilos para el encabezado
         worksheet.getRow(1).eachCell((cell) => {
             cell.font = { bold: true };
@@ -171,7 +158,6 @@ const ReporteDocumentos = () => {
                 fgColor: { argb: 'FFFFE0B2' } // Color de fondo
             };
         });
-
         // Generar y guardar el archivo Excel
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
@@ -190,12 +176,10 @@ const ReporteDocumentos = () => {
             const prestamoFecha = new Date(prestamo.fecha_prestamo);
             const prestamoAnio = prestamoFecha.getFullYear();
             const prestamoMes = prestamoFecha.getMonth() + 1;
-
             const estadoMatch = estado === "todos" ||
                 (estado === "activos" && prestamo.estado === 1) ||
                 (estado === "inactivos" && prestamo.estado === 0) ||
                 (estado === "eliminados" && prestamo.estado === 2);
-
             const mesMatch = mes ? parseInt(mes) === prestamoMes : true;
             const anioMatch = anio ? parseInt(anio) === prestamoAnio : true;
 
@@ -206,7 +190,6 @@ const ReporteDocumentos = () => {
     const handleExportExcel = async () => {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet("Reporte de Préstamos");
-
         worksheet.columns = [
             { header: "ID", key: "id", width: 10 },
             { header: "Usuario", key: "usuario", width: 20 },
@@ -217,21 +200,21 @@ const ReporteDocumentos = () => {
             { header: "Estado", key: "estado", width: 15 },
             { header: "Correo Persona", key: "correo_persona", width: 25 }
         ];
-
         const filteredPrestamos = filterPrestamos();
 
-        filteredPrestamos.forEach((prestamo,index) => {
+        filteredPrestamos.forEach((prestamo, index) => {
             worksheet.addRow({
-                id: index+1,
-                usuario: prestamo.usuario.nombre,
-                documento: prestamo.documento.titulo,
-                garantia: prestamo.garantia,
-                fecha_prestamo: prestamo.fecha_prestamo.slice(0, 10),
-                fecha_devolucion: prestamo.fecha_devolucion.slice(0, 10),
-                estado: prestamo.estado === 1 ? "Activo" : "Inactivo",
-                correo_persona: prestamo.persona.correo
+                id: index + 1,
+                usuario: prestamo.usuario?.nombre || "Sin usuario",
+                documento: prestamo.documento?.titulo || "Sin documento",
+                garantia: prestamo.garantia || "",
+                fecha_prestamo: prestamo?.fecha_prestamo ? prestamo.fecha_prestamo.slice(0, 10) : "",
+                fecha_devolucion: prestamo?.fecha_devolucion ? prestamo.fecha_devolucion.slice(0, 10) : "",
+                estado: prestamo.estado === 1 ? "Activo" : prestamo.estado === 0 ? "Inactivo" : "Eliminado",
+                correo_persona: prestamo.persona?.correo || "Sin correo",
             });
         });
+
 
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
@@ -241,16 +224,13 @@ const ReporteDocumentos = () => {
         link.click();
     };
     // Función para exportar los datos a Excel usando ExcelJS
-
     const downloadReporte = () => {
         let fileName = 'Reservas';
-
         if (estadosR.activos) fileName += '_Activas';
         if (estadosR.inactivos) fileName += '_Inactivas';
         if (estadosR.eliminados) fileName += '_Eliminadas';
         if (mesR) fileName += `_Mes_${mesR}`;
         if (anioR) fileName += `_Año_${anioR}`;
-
         exportToExcelReservas(filteredReservas, fileName);
     };
     const exportToExcelReservas = async (data, fileName) => {
@@ -265,10 +245,9 @@ const ReporteDocumentos = () => {
             { header: 'Documento', key: 'documento', width: 30 },
             { header: 'Persona', key: 'persona', width: 25 },
         ];
-
-        data.forEach((reserva,index) => {
+        data.forEach((reserva, index) => {
             worksheet.addRow({
-                id: index+1,
+                id: index + 1,
                 fecha_reserva: reserva.fecha_reserva,
                 fecha_validez: reserva.fecha_validez,
                 estado: reserva.estado === 1 ? 'Activa' : reserva.estado === 0 ? 'Inactiva' : 'Eliminada',
@@ -276,7 +255,6 @@ const ReporteDocumentos = () => {
                 persona: reserva.persona.nombre,
             });
         });
-
         worksheet.getRow(1).font = { bold: true };
         worksheet.getRow(1).eachCell(cell => {
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFCCCCCC' } };
@@ -287,7 +265,6 @@ const ReporteDocumentos = () => {
                 right: { style: 'thin' },
             };
         });
-
         const buffer = await workbook.xlsx.writeBuffer();
         saveAs(new Blob([buffer]), `${fileName}.xlsx`);
     };
@@ -299,13 +276,17 @@ const ReporteDocumentos = () => {
                 (carrera) => carrera.carrera.nombre === selectedCarrera
             )
             : true;
-        const matchesTipoPersona = selectedTipoPersona
-            ? tipoPersonas.some(
-                (tipo) => tipo.nombre == selectedTipoPersona
-            )
-            : true;
+        const matchesTipoPersona =
+            selectedTipoPersona === "todos"
+                ? true
+                : persona.tipo_persona?.nombre === selectedTipoPersona;
 
-        return matchesCarrera && matchesTipoPersona;
+        const matchesEstado = selectedEstadoPersona === "todos"
+            ? true
+            : selectedEstadoPersona === "activos"
+                ? persona.estado === 1
+                : persona.estado === 0;
+        return matchesCarrera && matchesTipoPersona && matchesEstado;
     });
     const exportPersonasToExcel = async () => {
         const workbook = new ExcelJS.Workbook();
@@ -321,9 +302,7 @@ const ReporteDocumentos = () => {
             { header: "Estado", key: "estado", width: 15 },
         ];
 
-
-
-        filteredPersonas.forEach((persona, index)=> {
+        filteredPersonas.forEach((persona, index) => {
             worksheet.addRow({
                 id: index + 1,
                 persona: persona.nombre,
@@ -352,73 +331,114 @@ const ReporteDocumentos = () => {
         link.click();
     };
     return (
-        <div class="reportes">
-            <h2 class="text-center mb-4">Reportes</h2>
-            <ul class="nav nav-tabs mb-4" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" data-bs-toggle="tab" href="#documentos" role="tab">Documentos</a>
+        <div className="reportes container mt-5">
+            <h2 className="text-center mb-4 fw-bold text-primary">📊 Panel de Reportes</h2>
+
+            <ul className="nav nav-tabs justify-content-center mb-4" role="tablist">
+                <li className="nav-item">
+                    <a className="nav-link active fw-semibold" data-bs-toggle="tab" href="#documentos" role="tab">
+                        Documentos
+                    </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#prestamos" role="tab">Préstamos</a>
+                <li className="nav-item">
+                    <a className="nav-link fw-semibold" data-bs-toggle="tab" href="#prestamos" role="tab">
+                        Préstamos
+                    </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#reservas" role="tab">Reservas</a>
+                <li className="nav-item">
+                    <a className="nav-link fw-semibold" data-bs-toggle="tab" href="#reservas" role="tab">
+                        Reservas
+                    </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#personas" role="tab">Personas</a>
+                <li className="nav-item">
+                    <a className="nav-link fw-semibold" data-bs-toggle="tab" href="#personas" role="tab">
+                        Personas
+                    </a>
                 </li>
             </ul>
 
+            <div className="tab-content border rounded p-4 shadow-sm bg-white">
+                {/* -------------------- DOCUMENTOS -------------------- */}
+                <div className="tab-pane show active" id="documentos" role="tabpanel">
+                    <div className="row mb-3 align-items-center">
+                        <div className="col-md-6">
+                            <label className="form-check-label me-3">
+                                <input
+                                    type="checkbox"
+                                    className="form-check-input me-1"
+                                    name="activos"
+                                    checked={estados.activos}
+                                    onChange={handleEstadoChange}
+                                />
+                                Activos
+                            </label>
+                            <label className="form-check-label me-3">
+                                <input
+                                    type="checkbox"
+                                    className="form-check-input me-1"
+                                    name="inactivos"
+                                    checked={estados.inactivos}
+                                    onChange={handleEstadoChange}
+                                />
+                                Inactivos
+                            </label>
+                            <label className="form-check-label">
+                                <input
+                                    type="checkbox"
+                                    className="form-check-input me-1"
+                                    name="eliminados"
+                                    checked={estados.eliminados}
+                                    onChange={handleEstadoChange}
+                                />
+                                Eliminados
+                            </label>
+                        </div>
 
-            <div class="tab-content border p-4 rounded">
-                <div class="tab-pane show active" id="documentos" role="tabpanel">
-                    <div class="mb-3">
-                        <label class="form-check-label me-3">
-                            <input type="checkbox" class="form-check-input" name="activos" checked={estados.activos} onChange={handleEstadoChange} /> Activos
-                        </label>
-                        <label class="form-check-label me-3">
-                            <input type="checkbox" class="form-check-input" name="inactivos" checked={estados.inactivos} onChange={handleEstadoChange} /> Inactivos
-                        </label>
-                        <label class="form-check-label">
-                            <input type="checkbox" class="form-check-input" name="eliminados" checked={estados.eliminados} onChange={handleEstadoChange} /> Eliminados
-                        </label>
+                        <div className="col-md-6 text-md-end mt-3 mt-md-0">
+                            <label className="form-label me-2 fw-semibold">Carrera:</label>
+                            <select
+                                className="form-select d-inline-block w-auto"
+                                value={carrera}
+                                onChange={handleCarreraChange}
+                            >
+                                <option value="">Todas</option>
+                                <option value="Sistemas Informaticos">Sistemas Informáticos</option>
+                                <option value="Mercadotecnia">Mercadotecnia</option>
+                                <option value="Contaduría General">Contaduría General</option>
+                                <option value="Secretariado Ejecutivo">Secretariado Ejecutivo</option>
+                                <option value="Turismo">Turismo</option>
+                                <option value="Sin carrera">Sin carrera</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label me-2">Carrera:</label>
-                        <select class="form-select w-auto d-inline" value={carrera} onChange={handleCarreraChange}>
-                            <option value="">Todas</option>
-                            <option value="Sistemas Informaticos">Sistemas Informáticos</option>
-                            <option value="Mercadotecnia">Mercadotecnia</option>
-                            <option value="Contaduría General">Contaduría General</option>
-                            <option value="Secretariado Ejecutivo">Secretariado Ejecutivo</option>
-                            <option value="Turismo">Turismo</option>
-                            <option value="Sin carrera">Sin carrera</option>
-                        </select>
+                    <div className="text-end mb-3">
+                        <button className="btn btn-success shadow-sm" onClick={exportToExcel}>
+                            📥 Descargar Excel
+                        </button>
                     </div>
 
-                    <button class="btn btn-primary mb-3" onClick={exportToExcel}>Descargar Excel</button>
                     <div className="table-responsive tablaPrestamos">
-                        <table class="table table-bordered">
-                            <thead class="table-dark">
+                        <table className="table table-striped table-hover align-middle">
+                            <thead className="table-primary text-center">
                                 <tr>
-                                    <th scope="col">ID</th>
-                                    <th scope="col">Título</th>
-                                    <th scope="col">Cantidad</th>
-                                    <th scope="col">Año de Edición</th>
-                                    <th scope="col">Ubicación</th>
-                                    <th scope="col">Descripción</th>
-                                    <th scope="col">Estado</th>
-                                    <th scope="col">Código</th>
-                                    <th scope="col">Área</th>
-                                    <th scope="col">Carrera</th>
-                                    <th scope="col">Formato</th>
-                                    <th scope="col">Tipo de Documento</th>
-                                    <th scope="col">Autor(es)</th>
+                                    <th>ID</th>
+                                    <th>Título</th>
+                                    <th>Cantidad</th>
+                                    <th>Año de Edición</th>
+                                    <th>Ubicación</th>
+                                    <th>Descripción</th>
+                                    <th>Estado</th>
+                                    <th>Código</th>
+                                    <th>Área</th>
+                                    <th>Carrera</th>
+                                    <th>Formato</th>
+                                    <th>Tipo</th>
+                                    <th>Autor(es)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredDocs.map(doc => (
+                                {filteredDocs.map((doc) => (
                                     <tr key={doc.id}>
                                         <td>{doc.id}</td>
                                         <td>{doc.titulo}</td>
@@ -426,13 +446,28 @@ const ReporteDocumentos = () => {
                                         <td>{new Date(doc.anio_edicion).toLocaleDateString()}</td>
                                         <td>{doc.ubicacion}</td>
                                         <td>{doc.descripcion}</td>
-                                        <td>{doc.estado === 1 ? 'Activo' : doc.estado === 0 ? 'Inactivo' : 'Eliminado'}</td>
+                                        <td>
+                                            <span
+                                                className={`badge ${doc.estado === 1
+                                                    ? "bg-success"
+                                                    : doc.estado === 0
+                                                        ? "bg-warning text-dark"
+                                                        : "bg-danger"
+                                                    }`}
+                                            >
+                                                {doc.estado === 1
+                                                    ? "Activo"
+                                                    : doc.estado === 0
+                                                        ? "Inactivo"
+                                                        : "Eliminado"}
+                                            </span>
+                                        </td>
                                         <td>{doc.codigo}</td>
                                         <td>{doc?.area?.nombre}</td>
                                         <td>{doc?.carrera?.nombre}</td>
                                         <td>{doc?.formato?.nombre}</td>
                                         <td>{doc.tipo_doc.nombre}</td>
-                                        <td>{doc.documento_autors.map(da => da.autor.nombre).join(', ')}</td>
+                                        <td>{doc.documento_autors.map((da) => da.autor.nombre).join(", ")}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -440,65 +475,94 @@ const ReporteDocumentos = () => {
                     </div>
                 </div>
 
-
-                <div class="tab-pane fade" id="prestamos" role="tabpanel">
-                    <div class="d-flex align-items-center mb-3">
-                        <label class="me-3">
-                            Estado:
-                            <select name="estado" class="form-select w-auto d-inline ms-2" value={estado} onChange={handleFilterChange}>
+                {/* -------------------- PRESTAMOS -------------------- */}
+                <div className="tab-pane fade" id="prestamos" role="tabpanel">
+                    <div className="row g-3 align-items-center mb-3">
+                        <div className="col-md-4">
+                            <label className="fw-semibold">Estado:</label>
+                            <select
+                                name="estado"
+                                className="form-select mt-1"
+                                value={estado}
+                                onChange={handleFilterChange}
+                            >
                                 <option value="todos">Todos</option>
                                 <option value="activos">Activos</option>
                                 <option value="inactivos">Inactivos</option>
                                 <option value="Eliminados">Eliminados</option>
                             </select>
-                        </label>
+                        </div>
 
-                        <label class="me-3">
-                            Mes:
-                            <select name="mes" class="form-select w-auto d-inline ms-2" value={mes} onChange={handleFilterChange}>
+                        <div className="col-md-4">
+                            <label className="fw-semibold">Mes:</label>
+                            <select
+                                name="mes"
+                                className="form-select mt-1"
+                                value={mes}
+                                onChange={handleFilterChange}
+                            >
                                 <option value="">Todos</option>
-                                <option value="1">Enero</option>
-                                <option value="2">Febrero</option>
-                                <option value="3">Marzo</option>
-                                <option value="4">Abril</option>
-                                <option value="5">Mayo</option>
-                                <option value="6">Junio</option>
-                                <option value="7">Julio</option>
-                                <option value="8">Agosto</option>
-                                <option value="9">Septiembre</option>
-                                <option value="10">Octubre</option>
-                                <option value="11">Noviembre</option>
-                                <option value="12">Diciembre</option>
+                                {[...Array(12)].map((_, i) => (
+                                    <option key={i + 1} value={i + 1}>
+                                        {new Date(0, i).toLocaleString("es", { month: "long" })}
+                                    </option>
+                                ))}
                             </select>
-                        </label>
+                        </div>
 
-                        <label>
-                            Año:
-                            <input type="number" class="form-control w-auto d-inline ms-2" name="anio" value={anio} onChange={handleFilterChange} placeholder="Ej. 2024" />
-                        </label>
+                        <div className="col-md-4">
+                            <label className="fw-semibold">Año:</label>
+                            <input
+                                type="number"
+                                className="form-control mt-1"
+                                name="anio"
+                                value={anio}
+                                onChange={handleFilterChange}
+                                placeholder="Ej. 2024"
+                            />
+                        </div>
                     </div>
 
-                    <button class="btn btn-primary" onClick={handleExportExcel}>Exportar a Excel</button>
+                    <div className="text-end mb-3">
+                        <button className="btn btn-success shadow-sm" onClick={handleExportExcel}>
+                            📘 Exportar a Excel
+                        </button>
+                    </div>
+
                     <div className="table-responsive tablaPrestamos">
-                        <table class="table table-striped table-bordered">
-                            <thead class="table-dark">
+                        <table className="table table-hover table-bordered align-middle">
+                            <thead className="table-primary text-center">
                                 <tr>
                                     <th>ID</th>
                                     <th>Documento</th>
                                     <th>Prestatario</th>
-                                    <th>Fecha Prestamo</th>
+                                    <th>Fecha Préstamo</th>
                                     <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredPrestamo.map(prestamo => (
+                                {filteredPrestamo.map((prestamo) => (
                                     <tr key={prestamo.id}>
                                         <td>{prestamo.id}</td>
                                         <td>{prestamo?.documento?.titulo}</td>
                                         <td>{prestamo?.persona?.nombre}</td>
                                         <td>{prestamo.fecha_prestamo.slice(0, 10)}</td>
-                                        <td>{prestamo?.estado === 1 ? 'Activo' : prestamo.estado === 0 ? 'Inactivo' : 'Eliminado'}</td>
-
+                                        <td>
+                                            <span
+                                                className={`badge ${prestamo.estado === 1
+                                                    ? "bg-success"
+                                                    : prestamo.estado === 0
+                                                        ? "bg-warning text-dark"
+                                                        : "bg-danger"
+                                                    }`}
+                                            >
+                                                {prestamo.estado === 1
+                                                    ? "Activo"
+                                                    : prestamo.estado === 0
+                                                        ? "Inactivo"
+                                                        : "Eliminado"}
+                                            </span>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -506,91 +570,172 @@ const ReporteDocumentos = () => {
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="reservas" role="tabpanel">
-                    <div class="mb-3">
-                        <input type="checkbox" class="form-check-input me-2" checked={estadosR.activos} onChange={() => setEstadosR({ ...estadosR, activos: !estadosR.activos })} /> Activas
-                        <input type="checkbox" class="form-check-input ms-4 me-2" checked={estadosR.inactivos} onChange={() => setEstadosR({ ...estadosR, inactivos: !estadosR.inactivos })} /> Inactivas
-                        <input type="checkbox" class="form-check-input ms-4 me-2" checked={estadosR.eliminados} onChange={() => setEstadosR({ ...estadosR, eliminados: !estadosR.eliminados })} /> Eliminadas
+                {/* -------------------- RESERVAS -------------------- */}
+                <div className="tab-pane fade" id="reservas" role="tabpanel">
+                    <div className="d-flex flex-wrap align-items-center mb-3">
+                        <label className="me-3">
+                            <input
+                                type="checkbox"
+                                className="form-check-input me-1"
+                                checked={estadosR.activos}
+                                onChange={() => setEstadosR({ ...estadosR, activos: !estadosR.activos })}
+                            />
+                            Activas
+                        </label>
+                        <label className="me-3">
+                            <input
+                                type="checkbox"
+                                className="form-check-input me-1"
+                                checked={estadosR.inactivos}
+                                onChange={() => setEstadosR({ ...estadosR, inactivos: !estadosR.inactivos })}
+                            />
+                            Inactivas
+                        </label>
+                        <label>
+                            <input
+                                type="checkbox"
+                                className="form-check-input me-1"
+                                checked={estadosR.eliminados}
+                                onChange={() => setEstadosR({ ...estadosR, eliminados: !estadosR.eliminados })}
+                            />
+                            Eliminadas
+                        </label>
                     </div>
 
-                    <div class="d-flex align-items-center mb-3">
-                        <label class="me-3">Mes:</label>
-                        <select class="form-select w-auto d-inline ms-2" value={mesR} onChange={(e) => setMesR(e.target.value)}>
-                            <option value="">Todos</option>
-                            <option value="1">Enero</option>
-                            <option value="2">Febrero</option>
-                            <option value="3">Marzo</option>
-                            <option value="4">Abril</option>
-                            <option value="5">Mayo</option>
-                            <option value="6">Junio</option>
-                            <option value="7">Julio</option>
-                            <option value="8">Agosto</option>
-                            <option value="9">Septiembre</option>
-                            <option value="10">Octubre</option>
-                            <option value="11">Noviembre</option>
-                            <option value="12">Diciembre</option>
-                        </select>
-
-                        <label class="me-3 ms-4">Año:</label>
-                        <input type="number" class="form-control w-auto d-inline ms-2" value={anioR} onChange={(e) => setAnioR(e.target.value)} placeholder="Ingrese el año" />
+                    <div className="row g-3 mb-3 align-items-center">
+                        <div className="col-md-6">
+                            <label className="fw-semibold">Mes:</label>
+                            <select
+                                className="form-select mt-1"
+                                value={mesR}
+                                onChange={(e) => setMesR(e.target.value)}
+                            >
+                                <option value="">Todos</option>
+                                {[...Array(12)].map((_, i) => (
+                                    <option key={i + 1} value={i + 1}>
+                                        {new Date(0, i).toLocaleString("es", { month: "long" })}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="col-md-6">
+                            <label className="fw-semibold">Año:</label>
+                            <input
+                                type="number"
+                                className="form-control mt-1"
+                                value={anioR}
+                                onChange={(e) => setAnioR(e.target.value)}
+                                placeholder="Ingrese el año"
+                            />
+                        </div>
                     </div>
 
-                    <button class="btn btn-primary" onClick={downloadReporte}>Descargar Reporte</button>
+                    <div className="text-end mb-3">
+                        <button className="btn btn-success shadow-sm" onClick={downloadReporte}>
+                            📗 Descargar Reporte
+                        </button>
+                    </div>
+
                     <div className="table-responsive tablaPrestamos">
-                        <table class="table table-striped table-bordered">
-                            <thead class="table-dark">
+                        <table className="table table-hover table-bordered align-middle">
+                            <thead className="table-primary text-center">
                                 <tr>
                                     <th>ID</th>
                                     <th>Documento</th>
                                     <th>Prestatario</th>
-                                    <th>Fecha Prestamo</th>
+                                    <th>Fecha Reserva</th>
                                     <th>Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredReservas.map(reserva => (
+                                {filteredReservas.map((reserva) => (
                                     <tr key={reserva.id}>
                                         <td>{reserva.id}</td>
                                         <td>{reserva?.documento?.titulo}</td>
                                         <td>{reserva?.persona?.nombre}</td>
                                         <td>{reserva?.fecha_reserva.slice(0, 10)}</td>
-                                        <td>{reserva?.estado === 1 ? 'Activo' : reserva.estado === 0 ? 'Inactivo' : 'Eliminado'}</td>
-
+                                        <td>
+                                            <span
+                                                className={`badge ${reserva.estado === 1
+                                                    ? "bg-success"
+                                                    : reserva.estado === 0
+                                                        ? "bg-warning text-dark"
+                                                        : "bg-danger"
+                                                    }`}
+                                            >
+                                                {reserva.estado === 1
+                                                    ? "Activo"
+                                                    : reserva.estado === 0
+                                                        ? "Inactivo"
+                                                        : "Eliminado"}
+                                            </span>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+                {/* -------------------- PERSONAS -------------------- */}
                 <div className="tab-pane fade" id="personas" role="tabpanel">
+                    <div className="mb-3 row">
+                        <div className='col-3'>
+                            <label className="fw-semibold me-2">Carrera:</label>
+                            <select
+                                value={selectedCarrera}
+                                onChange={(e) => setSelectedCarrera(e.target.value)}
+                                className="form-select w-auto d-inline"
+                            >
+                                <option value="">Todas</option>
+                                <option value="Sistemas Informaticos">Sistemas Informáticos</option>
+                                <option value="Mercadotecnia">Mercadotecnia</option>
+                                <option value="Contaduría General">Contaduría General</option>
+                                <option value="Secretariado Ejecutivo">Secretariado Ejecutivo</option>
+                                <option value="Turismo">Turismo</option>
+                                <option value="Sin carrera">Sin carrera</option>
+                            </select>
+                        </div>
+                        <div className='col-3'>
+                            <label className="fw-semibold me-2">Tipo Persona:</label>
+                            <select
+                                className="form-select w-auto d-inline"
+                                value={selectedTipoPersona}
+                                onChange={(e) => setSelectedTipoPersona(e.target.value)}
+                            >
+                                <option value="todos">Todos los tipos</option>
+                                <option value="Estudiante">Estudiante</option>
+                                <option value="Docente">Docente</option>
+                                <option value="Administrativo">Administrativo</option>
+                            </select>
+                        </div>
+                        <div className="col-2">
+                            <label className="fw-semibold me-2">Estado:</label>
+                            <select
+                                className="form-select w-auto d-inline"
+                                value={selectedEstadoPersona}
+                                onChange={(e) => setSelectedEstadoPersona(e.target.value)}
+                            >
+                                <option value="todos">Todos</option>
+                                <option value="activos">Activos</option>
+                                <option value="inactivos">Inactivos</option>
+                            </select>
 
-                    <div className="filters">
-                        <label>Carrera:</label>
-                        <select
-                            value={selectedCarrera}
-                            onChange={(e) => setSelectedCarrera(e.target.value)}
-                            className="form-select"
-                        >
-                            <option value="">Todas</option>
-                            <option value="Sistemas Informaticos">Sistemas Informáticos</option>
-                            <option value="Mercadotecnia">Mercadotecnia</option>
-                            <option value="Contaduría General">Contaduría General</option>
-                            <option value="Secretariado Ejecutivo">Secretariado Ejecutivo</option>
-                            <option value="Turismo">Turismo</option>
-                            <option value="Sin carrera">Sin carrera</option>
-                            {/* Agrega más opciones de carreras si es necesario */}
-                        </select>
-
+                        </div>
+                        <div className='col-4 mt-4'>
+                            <div className="text-end">
+                                <button onClick={exportPersonasToExcel} className="btn btn-success shadow-sm">
+                                    📋 Descargar Excel
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <button onClick={exportPersonasToExcel} className="btn btn-primary mt-3">
-                        Descargar Excel
-                    </button>
                     <div className="table-responsive tablaPrestamos">
-                        <table class="table table-striped table-bordered">
-                            <thead class="table-dark">
+                        <table className="table table-hover table-bordered align-middle">
+                            <thead className="table-primary text-center">
                                 <tr>
-                                    <th>ID</th>
+                                    <th>#</th>
                                     <th>Nombre</th>
                                     <th>Correo</th>
                                     <th>CI</th>
@@ -600,17 +745,25 @@ const ReporteDocumentos = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredPersonas?.map((persona,index) => (
+                                {filteredPersonas?.map((persona, index) => (
                                     <tr key={persona.id}>
-                                         <td>{index + 1}</td> 
+                                        <td>{index + 1}</td>
                                         <td>{persona.nombre}</td>
                                         <td>{persona.correo}</td>
                                         <td>{persona.ci}</td>
                                         <td>{persona.celular}</td>
-                                        <td>{persona.estado === 1 ? "Activo" : "Inactivo"}</td>
-
                                         <td>
-                                            {persona.persona_carreras.map((persona_carreras) => persona_carreras.carrera.nombre).join(", ")}
+                                            <span
+                                                className={`badge ${persona.estado === 1 ? "bg-success" : "bg-secondary"
+                                                    }`}
+                                            >
+                                                {persona.estado === 1 ? "Activo" : "Inactivo"}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {persona.persona_carreras
+                                                .map((pc) => pc.carrera.nombre)
+                                                .join(", ")}
                                         </td>
                                     </tr>
                                 ))}
@@ -619,8 +772,8 @@ const ReporteDocumentos = () => {
                     </div>
                 </div>
             </div>
-
         </div>
+
 
     );
 };

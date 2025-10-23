@@ -1,462 +1,534 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 import swal from 'sweetalert';
+import lunr from 'lunr';
 import './estudiante.css'
 
-import lunr from 'lunr';
-
 const Estudiante = ({ handleAddUser }) => {
-
-  const token = localStorage.getItem('token');
+  // ---- estados del formulario manual ----
   const [nombre, setNombre] = useState('');
   const [correo, setCorreo] = useState('');
   const [ci, setCi] = useState('');
   const [celular, setCelular] = useState('');
-  const [carreras, setCarreras] = useState([]); // Valor inicial del rol
-  const [tipo, setTipo] = useState([]); // Valor inicial del rol
-  const [tipoPersonas, settipoPersonas] = useState([]); // Valor inicial del rol
-  const [carre, setCarre] = useState(0); // Valor inicial del rol
+  const [carre, setCarre] = useState('');
+  const [tipo, setTipo] = useState('');
 
+  // ---- catálogos y listas ----
+  const [carreras, setCarreras] = useState([]);
+  const [tipoPersonas, setTipoPersonas] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
 
+  // ---- Excel ----
+  const [excelEstudiantes, setExcelEstudiantes] = useState([]);
+  const [personaId, setPersonaId] = useState('');
+
+  // ---- búsqueda ----
   const [searchText, setSearchText] = useState('');
-  const [searchResults, setSearchResults] = useState([]); // Almacena los resultados de la búsqueda
+  const [searchResults, setSearchResults] = useState([]);
+
+  // ---- edición ----
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [editNombre, setEditNombre] = useState('');
+  const [editCorreo, setEditCorreo] = useState('');
+  const [editCi, setEditCi] = useState('');
+  const [editCelular, setEditCelular] = useState('');
+
+  // ============================ USE EFFECT ==============================
   useEffect(() => {
-    // Obtener la lista de carreras al cargar el componente
     handleGetCarreras();
+    handleGetTipoPersonas();
     handleGetEstudiantes();
-    handleGetTipoPersonas()
+    // eslint-disable-next-line
   }, []);
-  useEffect(() => {
-    handleGetEstudiantes();
 
-  }, []);
-  useEffect(() => {
-    if (selectedUser) {
-      document.getElementById('nombre2').value = selectedUser.nombre || '';
-      document.getElementById('correo2').value = selectedUser.correo || '';
-      document.getElementById('ci2').value = selectedUser.ci || 0;
-      document.getElementById('celular2').value = selectedUser.celular || 0;
-    }
-    handleGetEstudiantes();
-    /* handleGetSanciones();
- */
-
-
-  }, [selectedUser]);
-
-
+  // ============================ CARGAS INICIALES ==============================
   const handleGetCarreras = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/carrera', {
-        /*         headers: {
-                  Authorization: `Bearer ${token}`
-                } */
-      });
-
-      setCarreras(response.data.data.carrera);
-
-    } catch (error) {
-      // Opcional: Mostrar una notificación o mensaje de error
+      const res = await axios.get('http://localhost:8000/api/carrera');
+      setCarreras(res.data.data.carrera || []);
+    } catch (err) {
+      console.error('Error cargando carreras', err);
     }
-
   };
+
   const handleGetTipoPersonas = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/tipo_persona', {
-      });
-
-      settipoPersonas(response.data.data.tipo_persona);
-
-    } catch (error) {
-
+      const res = await axios.get('http://localhost:8000/api/tipo_persona');
+      setTipoPersonas(res.data.data.tipo_persona || []);
+    } catch (err) {
+      console.error('Error cargando tipo persona', err);
     }
-
   };
+
+  const handleGetEstudiantes = async () => {
+    try {
+      const res = await axios.get('http://localhost:8000/api/persona');
+      const list = res.data.data.personas || [];
+      setEstudiantes(list);
+      setSearchResults(list);
+    } catch (err) {
+      console.error('Error cargando estudiantes', err);
+    }
+  };
+
+  // ============================ FORMULARIO MANUAL ==============================
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-
-    // Realizar la solicitud para agregar el usuario
     try {
-      const response = await axios.post(
-        'http://localhost:8000/api/persona',
-        {
-          nombre,
-          correo,
-          ci,
-          celular,
-          estado: 1,
-          carreras: [carre],
-          tipoPersonaId: tipo
-        },
-        {
-          /*      headers: {
-                 Authorization: `Bearer ${token}`
-               } */
-        }
-      );
-
-      // Limpiar los campos del formulario
+      await axios.post('http://localhost:8000/api/persona', {
+        nombre,
+        correo,
+        ci,
+        celular,
+        estado: 1,
+        carreras: [carre],
+        tipoPersonaId: tipo,
+      });
       setNombre('');
       setCorreo('');
       setCi('');
       setCelular('');
-      setCarre(0);
-      setTipo(0);
-      handleGetEstudiantes();
-      // Llamar a la función del padre para actualizar la lista de usuarios
-      swal({
-        title: "Estudiante Agregado!",
-        /* text: "Por favor, completa todos los campos requeridos", */
-        icon: "success",
-        button: "Ok",
-      });
-      handleAddUser(response.data);
-
-      // Opcional: Mostrar una notificación o mensaje de éxito
+      setCarre('');
+      setTipo('');
+      await handleGetEstudiantes();
+      swal('Éxito', 'Estudiante agregado con éxito', 'success');
     } catch (error) {
-      // Opcional: Mostrar una notificación o mensaje de error
+      console.error('Error agregando estudiante', error);
+      swal('Error', 'Hubo un error al agregar el estudiante', 'error');
     }
   };
 
-  //para mostrar estudiantes
-  const handleGetEstudiantes = async () => {
-    const res = await axios({
-      url: "http://localhost:8000/api/persona",
-      method: "GET",
-      /*       headers: {
-              Authorization: `Bearer ${token}`,
-            }, */
-    });
-    setEstudiantes(res.data.data.personas);
-    setSearchResults(res.data.data.personas)
-
+  // ============================ CARGAR DESDE EXCEL ==============================
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const data = new Uint8Array(event.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheet];
+      const json = XLSX.utils.sheet_to_json(worksheet);
+      setExcelEstudiantes(json);
+    };
+    reader.readAsArrayBuffer(file);
   };
 
-  //editar estudiante
-  //editar
-  const handleEditUser = (user) => {
-    document.getElementById('nombre2').defaultValue = '';
-    document.getElementById('correo2').defaultValue = '';
-    document.getElementById('ci2').defaultValue = 0;
-    document.getElementById('celular2').defaultValue = 0;
+  const handleGuardarExcel = async () => {
+    try {
+      if (!personaId) {
+        swal('Error', 'Debes seleccionar un tipo de persona', 'error');
+        return;
+      }
+      const estudiantesConDatos = excelEstudiantes.map((est) => {
+        const carreraEncontrada = carreras.find(
+          (c) => c.nombre.toLowerCase() === (est.carrera || '').toString().toLowerCase()
+        );
+        return {
+          ...est,
+          estado: '1',
+          tipoPersonaId: parseInt(personaId),
+          carreras: carreraEncontrada ? [carreraEncontrada.id.toString()] : null,
+        };
+      });
 
-    setSelectedUser(user);
+      // eliminar campos sobrantes si existen
+      estudiantesConDatos.forEach((obj) => {
+        delete obj.Nro;
+        delete obj.carrera;
+      });
 
+      await Promise.all(
+        estudiantesConDatos.map((est) => axios.post('http://localhost:8000/api/persona', est))
+      );
 
-  };
-  //buscar Prestamo
-
-
-  const handleUpdateUser = async (e) => {
-    // Make the API request to update the user
-    e.preventDefault();
-    // Restablecer los campos del formulario
-
-    await axios({
-      url: `http://localhost:8000/api/persona/${selectedUser.id}`,
-      method: "PUT",
-      /*   headers: {
-          Authorization: `Bearer ${token}`,
-        }, */
-      data: {
-        nombre: document.getElementById('nombre2').value,
-        correo: document.getElementById('correo2').value,
-        ci: document.getElementById('ci2').value,
-        celular: document.getElementById('celular2').value,
-      },
-    });
-
-    // Update the user in the local state
-    const updatedUsuarios = estudiantes?.map((usuario) =>
-      usuario.id === selectedUser.id ? { ...usuario, ...selectedUser } : usuario
-    );
-
-    setEstudiantes(updatedUsuarios);
-    setSelectedUser(null);
-
+      swal('Éxito', 'Estudiantes cargados correctamente ✅', 'success');
+      setExcelEstudiantes([]);
+      await handleGetEstudiantes();
+    } catch (error) {
+      console.error(error);
+      swal('Error', 'Hubo un error al guardar los estudiantes ❌', 'error');
+    }
   };
 
-  //buscador
-  var idx = lunr(function () {
-    this.field('id')
-    this.field('nombre')
-    this.field('correo')
-    this.field('celular')
-    this.field('ci')
-
-
-
-    estudiantes?.map((document, ind) =>
+  // ============================ BUSCADOR (lunr) ==============================
+  // build index each render (para listas medianas funciona bien)
+  const idx = lunr(function () {
+    this.ref('id');
+    this.field('nombre');
+    this.field('correo');
+    this.field('ci');
+    this.field('celular');
+    estudiantes?.forEach((doc) =>
       this.add({
-        "id": document.id,
-        "nombre": document?.nombre,
-        "correo": document?.correo,
-        "celular": document?.celular,
-        "ci": document?.ci,
-
+        id: doc.id,
+        nombre: doc.nombre,
+        correo: doc.correo,
+        ci: doc.ci,
+        celular: doc.celular,
       })
     );
-  })
+  });
 
-console.log("est:",estudiantes)
-  const encontrado = [];
-
-
-
-
-  const handleChange = (event) => {
-    const text = event.target.value;
+  const handleChange = (e) => {
+    const text = e.target.value;
     setSearchText(text);
-
-    // Realiza la búsqueda en función del texto ingresado (puedes usar una función de búsqueda o llamar a una API aquí)
-    // Por ahora, simplemente vamos a simular algunos resultados de búsqueda
-    const results = simulateSearch(text);
-
-    setSearchResults(results);
-  };
-
-  // Función de simulación de búsqueda (puedes reemplazarla con tu lógica de búsqueda real)
-  const simulateSearch = (text) => {
-    // Simulación de búsqueda en base al texto ingresado
-    const aqui = idx.search(text)
-    for (let clave of aqui) {
-      const objetoEncontrado = estudiantes?.find(objeto => objeto.id == clave.ref);
-      if (objetoEncontrado) {
-        encontrado.push(objetoEncontrado);
-      }
+    if (!text) {
+      setSearchResults(estudiantes);
+      return;
     }
-    return encontrado;
+    try {
+      const res = idx.search(text);
+      const encontrados = res
+        .map((r) => estudiantes.find((est) => est.id === parseInt(r.ref)))
+        .filter(Boolean);
+      setSearchResults(encontrados.length ? encontrados : estudiantes);
+    } catch (err) {
+      setSearchResults(estudiantes);
+    }
   };
 
+  // ============================ EDICIÓN ==============================
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setEditNombre(user.nombre || '');
+    setEditCorreo(user.correo || '');
+    setEditCi(user.ci || '');
+    setEditCelular(user.celular || '');
+    // El modal se abre vía data-bs-toggle en el botón, aquí sólo seteamos los valores
+  };
+
+  const handleUpdateUser = async () => {
+    if (!selectedUser) return;
+    try {
+      await axios.put(`http://localhost:8000/api/persona/${selectedUser.id}`, {
+        nombre: editNombre,
+        correo: editCorreo,
+        ci: editCi,
+        celular: editCelular,
+      });
+      swal('Éxito', 'Estudiante actualizado', 'success');
+      setSelectedUser(null);
+      // refrescar lista y limpiar búsqueda
+      await handleGetEstudiantes();
+      setSearchText('');
+    } catch (error) {
+      console.error('Error al actualizar', error);
+      swal('Error', 'No se pudo actualizar el estudiante', 'error');
+    }
+  };
+
+  // ============================ BAJA / REINTEGRAR ==============================
   const handleDarBaja = async (id) => {
+    try {
+      await axios.put(`http://localhost:8000/api/persona/baja/${id}`, { estado: 0 });
+      swal('Ok', 'Estudiante dado de baja', 'success');
+      await handleGetEstudiantes();
+    } catch (error) {
+      console.error('Error al dar de baja', error);
+      swal('Error', 'No se pudo dar de baja', 'error');
+    }
+  };
 
-    // Restablecer los campos del formulario
-    await axios({
-      url: `http://localhost:8000/api/persona/baja/${id}`,
-      method: "PUT",
-      /*           headers: {
-                  Authorization: `Bearer ${token}`,
-                }, */
-      data: {
-        estado: 0,
-
-      },
-    }).then((response) => {
-      // Accede a la respuesta de la API
-      console.log("Respuesta de la API:", response.data);
-    });
-    handleGetEstudiantes();
-  }
   const handleReintegrar = async (id) => {
+    try {
+      await axios.put(`http://localhost:8000/api/persona/baja/${id}`, { estado: 1 });
+      swal('Ok', 'Estudiante reintegrado', 'success');
+      await handleGetEstudiantes();
+    } catch (error) {
+      console.error('Error al reintegrar', error);
+      swal('Error', 'No se pudo reintegrar', 'error');
+    }
+  };
 
-    // Restablecer los campos del formulario
-    await axios({
-      url: `http://localhost:8000/api/persona/baja/${id}`,
-      method: "PUT",
-      /*           headers: {
-                  Authorization: `Bearer ${token}`,
-                }, */
-      data: {
-        estado: 1,
-
-      },
-    }).then((response) => {
-      // Accede a la respuesta de la API
-      console.log("Respuesta de la API:", response.data);
-    });
-    handleGetEstudiantes();
-  }
+  // ============================ RENDER ==============================
   return (
-    <div className='estudiante'>
-      <h1 className='estudianteh1'>Miembros Instituto</h1>
-      <ul className="nav nav-tabs" role="tablist">
-        <li className="nav-item">
-          <a className="nav-link active" data-bs-toggle="tab" href="#agregar" role="tab">Agregar</a>
+    <div className="container mt-4 estudiante">
+      <h2 className="text-center mb-4 fw-bold">Gestión de Miembros</h2>
+
+      <ul className="nav nav-tabs" id="tabEstudiantes" role="tablist">
+        <li className="nav-item" role="presentation">
+          <button className="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">
+            ➕ Registro Manual
+          </button>
         </li>
-        <li className="nav-item">
-          <a className="nav-link" data-bs-toggle="tab" href="#listar" role="tab">Lista</a>
+        <li className="nav-item" role="presentation">
+          <button className="nav-link" id="excel-tab" data-bs-toggle="tab" data-bs-target="#excel" type="button" role="tab">
+            📁 Cargar desde Excel
+          </button>
         </li>
-        <li className="nav-item">
-          <a className="nav-link" data-bs-toggle="tab" href="#bajas" role="tab">Bajas</a>
+        <li className="nav-item" role="presentation">
+          <button className="nav-link" id="lista-tab" data-bs-toggle="tab" data-bs-target="#lista" type="button" role="tab">
+            📋 Lista de Estudiantes
+          </button>
+        </li>
+        <li className="nav-item" role="presentation">
+          <button className="nav-link" id="lista-tab" data-bs-toggle="tab" data-bs-target="#listabajas" type="button" role="tab">
+            🗑️ Bajas
+          </button>
         </li>
       </ul>
 
-      <div className="tab-content">
-        <div className='NuevoEstudiante tab-pane fade show active' id='agregar'>
-          <form onSubmit={handleSubmit}>
-            <div className='row '>
-              <div className="mb-3 col-3">
-                <label htmlFor="nombre" className="form-label">Nombre</label>
-                <input type="text" className="form-control" id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} required />
-              </div>
-              <div className="mb-3 col-3">
-                <label htmlFor="correo" className="form-label">Correo</label>
-                <input type="email" className="form-control" id="correo" value={correo} onChange={(e) => setCorreo(e.target.value)} required />
-              </div>
-              <div className="mb-3 col-3">
-                <label htmlFor="ci" className="form-label">CI</label>
-                <input type="text" className="form-control" id="ci" value={ci} onChange={(e) => setCi(e.target.value)} required />
-              </div>
-              <div className="mb-3 col-3">
-                <label htmlFor="celular" className="form-label">Celular</label>
-                <input type="text" className="form-control" id="celular" value={celular} onChange={(e) => setCelular(e.target.value)} required />
-              </div>
-              <div className="mb-3 col-3">
-                <label htmlFor="carrera" className="form-label">Carrera</label>
-                <select className="form-control" id="carrera" value={carre} onChange={(e) => setCarre(e.target.value)}>
-                  <option value="" hidden selected>Seleccione Carrera</option>
-                  {carreras?.map((carrera) =>
-                    <option key={carrera.id} value={carrera.id}>{carrera.nombre}</option>
-                  )}
-                </select>
+      <div className="tab-content mt-4" id="tabEstudiantesContent">
+        {/* ===== TAB: AGREGAR MANUAL ===== */}
+        <div className="tab-pane fade show active" id="manual" role="tabpanel">
+          <div className="card shadow-sm p-4 mb-4">
+            <h5 className="fw-bold text-secondary mb-3">Agregar Nuevo Estudiante</h5>
+            <form onSubmit={handleSubmit}>
+              <div className="row g-3">
+                <div className="col-md-4">
+                  <label className="form-label">Nombre</label>
+                  <input type="text" className="form-control" value={nombre} onChange={(e) => setNombre(e.target.value)} required />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label">Correo</label>
+                  <input type="email" className="form-control" value={correo} onChange={(e) => setCorreo(e.target.value)} required />
+                </div>
+                <div className="col-md-2">
+                  <label className="form-label">CI</label>
+                  <input type="text" className="form-control" value={ci} onChange={(e) => setCi(e.target.value)} required />
+                </div>
+                <div className="col-md-2">
+                  <label className="form-label">Celular</label>
+                  <input type="text" className="form-control" value={celular} onChange={(e) => setCelular(e.target.value)} required />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Carrera</label>
+                  <select className="form-select" value={carre} onChange={(e) => setCarre(e.target.value)} required>
+                    <option value="">Seleccione carrera</option>
+                    {carreras.map((c) => (
+                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label">Tipo de Persona</label>
+                  <select className="form-select" value={tipo} onChange={(e) => setTipo(e.target.value)} required>
+                    <option value="">Seleccione tipo</option>
+                    {tipoPersonas.map((tp) => (
+                      <option key={tp.id} value={tp.id}>{tp.nombre}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="mb-3 col-3">
-                <label htmlFor="tipo" className="form-label">T. persona</label>
-                <select className="form-control" id="tipo" value={tipo} onChange={(e) => setTipo(e.target.value)}>
-                  <option value="" hidden selected>Seleccione tipo</option>
-                  {tipoPersonas?.map((tipo) =>
-                    <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
-                  )}
+              <div className="text-end mt-4">
+                <button type="submit" className="btn btn-primary px-4">Guardar Estudiante</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* ===== TAB: CARGAR EXCEL ===== */}
+        <div className="tab-pane fade" id="excel" role="tabpanel">
+          <div className="card shadow-sm p-4 mb-4">
+            <h5 className="fw-bold text-secondary mb-3">Carga Masiva desde Excel</h5>
+
+            <div className="row g-3 align-items-end">
+              <div className="col-md-6">
+                <label className="form-label">Archivo Excel</label>
+                <input type="file" className="form-control" accept=".xlsx, .xls" onChange={handleFileUpload} />
+              </div>
+              <div className="col-md-4">
+                <label className="form-label">Tipo de Persona</label>
+                <select className="form-select" value={personaId} onChange={(e) => setPersonaId(e.target.value)}>
+                  <option value="">Seleccione tipo</option>
+                  {tipoPersonas.map((tp) => (
+                    <option key={tp.id} value={tp.id}>{tp.nombre}</option>
+                  ))}
                 </select>
               </div>
-{/* 
-              <div className='mb-3 col '>
-                <label htmlFor="descripcion" className="form-label"></label>
-                <Select
-                  options={filteredOptions}
-                  onChange={handleSelectChange}
-                  isSearchable
-                  isMulti
-                  placeholder="Selecciona Autores"
-                  value={selectedOption}
-                />
-              </div> */}
-
+              <div className="col-md-2 text-end">
+                <button className="btn btn-success w-100" onClick={handleGuardarExcel}>Guardar en BD</button>
+              </div>
             </div>
 
-            <button type="submit" className="btn btn-primary bootonEstudiante">Agregar</button>
-          </form>
+            <div className="table-responsive mt-4" style={{ maxHeight: '360px', overflowY: 'auto' }}>
+              <table className="table table-striped table-hover">
+                <thead className="table-dark position-sticky top-0">
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>CI</th>
+                    <th>Celular</th>
+                    <th>Carrera</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {excelEstudiantes.map((est, i) => (
+                    <tr key={i}>
+                      <td>{i + 1}</td>
+                      <td>{est.nombre}</td>
+                      <td>{est.correo}</td>
+                      <td>{est.ci}</td>
+                      <td>{est.celular}</td>
+                      <td>{est.carrera}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-        {/* editar estudiante */}
-        <div className={`modal fade`} id="modalEdit" taindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h1 className="modal-title fs-5" id="exampleModalLabel">Editar Estudiante</h1>
-                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" ></button>
-              </div>
-              <div className="modal-body">
-                <form >
-                  <div className="mb-3">
-                    <label htmlFor="recipient-name" className="col-form-label">Nombre:</label>
 
-                    <input type="text" className="form-control" id="nombre2" name="nombre2" defaultValue={selectedUser?.nombre} required />
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="recipient-name" className="col-form-label">Correo:</label>
-                    <input type="text" className="form-control" id="correo2" name="correo2" defaultValue={selectedUser?.correo} required />
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="recipient-name" className="col-form-label">CI:</label>
-                    <input type="number" className="form-control" id="ci2" name="ci2" defaultValue={selectedUser?.ci} required />
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="recipient-name" className="col-form-label">celular:</label>
-                    <input type="number" className="form-control" id="celular2" name="celular2" defaultValue={selectedUser?.celular} required />
-                  </div>
-                </form>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="submit" className="btn btn-primary" onClick={handleUpdateUser} data-bs-dismiss="modal">Guardar</button>
+        {/* ===== TAB: LISTA ===== */}
+        <div className="tab-pane fade" id="lista" role="tabpanel" >
+          <div className="card shadow-sm p-4 mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h5 className="fw-bold text-secondary mb-0">Lista de Estudiantes</h5>
+              <input
+                type="text"
+                className="form-control w-25"
+                placeholder="Buscar..."
+                value={searchText}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* tabla con scroll */}
+            <div className="table-responsive" style={{ maxHeight: '540px', overflowY: 'auto' }}>
+              <table className="table table-hover">
+                <thead className="table-dark position-sticky top-0">
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>CI</th>
+                    <th>Celular</th>
+                    <th>Carrera</th>
+                    <th>Tipo</th>
+                    <th>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {searchResults.map((est, i) => (
+                    <tr key={est.id}>
+                      <td>{i + 1}</td>
+                      <td>{est.nombre}</td>
+                      <td>{est.correo}</td>
+                      <td>{est.ci}</td>
+                      <td>{est.celular}</td>
+                      <td>{est.persona_carreras?.[0]?.carrera?.nombre || '-'}</td>
+                      <td>{est.tipo_persona?.nombre || '-'}</td>
+                      <td>
+                        {/* EDITAR: abre modal y setea datos (modal se muestra con data-bs-toggle) */}
+                        <div className="d-flex justify-content-start gap-2">
+                          {/* EDITAR */}
+                          <button
+                            className="btn btn-sm btn-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalEdit"
+                            onClick={() => handleEditUser(est)}
+                          >
+                            <i className="bi bi-pencil-square me-1"></i> Editar
+                          </button>
+
+                          {/* BAJA */}
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() =>
+                              swal({
+                                title: 'Dar de baja',
+                                text: '¿Estás seguro que quieres dar de baja a este estudiante?',
+                                icon: 'warning',
+                                buttons: ['No', 'Sí'],
+                                dangerMode: true,
+                              }).then((willDelete) => {
+                                if (willDelete) handleDarBaja(est.id);
+                              })
+                            }
+                          >
+                            <i className="bi bi-trash3 me-1"></i> Baja
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {/* TAB: BAJAS (mostramos en otra vista si lo deseas) */}
+        <div className="tab-pane fade" id="listabajas" role="tabpanel">
+          <div className="card shadow-sm p-4 mb-4">
+            <div className="">
+              <h5 className="fw-bold text-secondary mb-3">Estudiantes dados de baja</h5>
+              <div className="table-responsive" style={{ maxHeight: '240px', overflowY: 'auto' }}>
+                <table className="table table-striped">
+                  <thead className="table-dark position-sticky top-0">
+                    <tr>
+                      <th>#</th>
+                      <th>Nombre</th>
+                      <th>Correo</th>
+                      <th>Carrera</th>
+                      <th>Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {estudiantes
+                      .filter((e) => e.estado === 0)
+                      .map((est, idx) => (
+                        <tr key={est.id}>
+                          <td>{idx + 1}</td>
+                          <td>{est.nombre}</td>
+                          <td>{est.correo}</td>
+                          <td>{est.persona_carreras?.[0]?.carrera?.nombre || '-'}</td>
+                          <td>
+                            <button className="btn btn-sm btn-success" onClick={() => handleReintegrar(est.id)}>
+                              Reintegrar
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         </div>
-        {/* para mostrar estudiantes */}
+      </div>
 
-        <div className={`tab-pane fade `} id='listar'>
-          <input type="text" className="form-control mb-3 mt-3" placeholder="Buscar formato..." value={searchText} onChange={handleChange} />
-
-          <div className="table-responsive tablaEstudiante">
-            <table className="table table-fixed">
-              <thead className="table-dark sticky-top">
-                <tr>
-                  <th scope="col">Nº</th>
-                  <th scope="col">Nombre</th>
-                  <th scope="col ">Correo</th>
-                  <th scope="col ">Carrera</th>
-                  <th scope="col">Celular</th>
-                  <th scope="col">Carnet CI</th>
-                  <th scope="col">Accion</th>
-                </tr>
-              </thead>
-              <tbody>
-                {searchResults?.map((estudiante, index) => estudiante.estado == 1 && (
-
-                  <tr key={estudiante.id}>
-                    <td>{index + 1}</td>
-                    <td>{estudiante.nombre}</td>
-                    <td>{estudiante.correo}</td>
-               {/*      <td>{estudiante.persona.carrera.nombre}</td> */}
-               <td>{estudiante.persona_carreras[0]?.carrera.nombre}</td>
-                    <td>{estudiante.celular}</td>
-                    <td>{estudiante.ci}</td>
-
-                    <td>
-                      <button className='btn btn-primary' data-bs-toggle="modal" data-bs-target="#modalEdit" data-bs-whatever="@mdo" onClick={() => handleEditUser(estudiante)}>Editar</button>
-                      <button className='btn btn-danger botonEstudiante' data-bs-target="#modalBajas" data-bs-whatever="@mdo" onClick={() => handleDarBaja(estudiante.id)}>Baja</button>
-                      {/*  <button className='btn btn-secondary boton' data-bs-toggle="modal" data-bs-target="#modalSancion" data-bs-whatever="@mdo" >Sancionar</button> */} {/* onClick={() => setLectorSancionado(usuario)} */}
-
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-
-
-        <div className={`tab-pane fade `} id='bajas'>
-          <div className="table-responsive tablaEstudiante">
-            <table className="table table-fixed">
-              <thead className="table-dark sticky-top">
-                <tr>
-                  <th scope="col">Nº</th>
-                  <th scope="col">Nombre</th>
-                  <th scope="col">Correo</th>
-                  <th scope="col">Carrera</th>
-                  <th scope="col ">Rol</th>
-                  <th scope="col ">Accion</th>
-
-
-                </tr>
-              </thead>
-              <tbody>
-                {estudiantes?.map((estudiante, index) => estudiante.estado == 0 && (
-                  <tr key={estudiante.id}>
-                    <td>{index + 1}</td>
-                    <td>{estudiante.nombre}</td>
-                    <td>{estudiante.correo}</td>
-                    <td>{estudiante.persona_carreras[0]?.carrera.nombre}</td>
-                    <td>{estudiante?.rol?.nombre_rol}</td>
-                    <td>
-                      <button className='btn btn-danger boton' onClick={() => handleReintegrar(estudiante.id)}>Reintegrar</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* ===== MODAL EDICIÓN ===== */}
+      <div className="modal fade" id="modalEdit" tabIndex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="modalEditLabel">Editar Estudiante</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={(e) => { e.preventDefault(); handleUpdateUser(); }} id="formEdit">
+                <div className="mb-3">
+                  <label className="form-label">Nombre</label>
+                  <input type="text" className="form-control" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} required />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Correo</label>
+                  <input type="email" className="form-control" value={editCorreo} onChange={(e) => setEditCorreo(e.target.value)} required />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">CI</label>
+                  <input type="text" className="form-control" value={editCi} onChange={(e) => setEditCi(e.target.value)} required />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Celular</label>
+                  <input type="text" className="form-control" value={editCelular} onChange={(e) => setEditCelular(e.target.value)} required />
+                </div>
+              </form>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+              <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={handleUpdateUser}>Guardar</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
   );
 };
 

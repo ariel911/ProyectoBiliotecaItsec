@@ -1,4 +1,16 @@
-.autor{
+.gestion .nav-tabs .nav-link {
+    color: #555;
+    font-weight: 500;
+}
+
+.gestion .nav-tabs .nav-link.active {
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.gestion {
     width: 90%;
     height: 100%;
     padding: 10px;
@@ -6,58 +18,21 @@
     margin: 0 auto;
 }
 
-.boton{
-    margin-left: 10px;
-}
-.nuevoAutor{
-    width: 100%;
-    height: 50%;
-    padding: 20px;
-    margin-top: 20px;
-    background-color: white;
-    border-radius: 5px;
-    -webkit-box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
-    -moz-box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
-    box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
+.table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-.boton2{
-    margin-top: 50px;
+.gestion .card {
+    border-radius: 1rem;
 }
 
-
-
-.tablaAutor{
-    background-color: white;
-    width: 100%;
-    height: 400px;
-    margin: 10px 0px 0px 0px;
-    -webkit-box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
-    -moz-box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
-    box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.45);
+.gestion .card-header {
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
 }
 
-.tituloAutor{
-    text-align: center;
-}
-@media (orientation: landscape) {
-    .nuevoAutor{
-        height: 80%;
-
-    }
-}
-@media (min-width: 769px) { 
-    .nuevoAutor {
-        width: 100%;
-        height: 200px;
-    }
-    .tablaAutor{
-        height:450px;
-        width: 100%;
-    }
-    .tituloAutor{
-
-        text-align: center;
-    }
-
+.gestion .btn {
+    border-radius: 0.5rem;
 }

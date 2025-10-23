@@ -6,9 +6,7 @@ const CargarEstudiantes = () => {
     const [estudiantes, setEstudiantes] = useState([]);
     const [tipoPersonas, setTipoPersonas] = useState([]);
     const [personaId, setPersonaId] = useState("");
-
-    const [carreras, setCarreras] = useState([]); // Valor inicial del rol
-    // Método para leer el archivo Excel
+    const [carreras, setCarreras] = useState([]); 
     useEffect(() => {
         handleGetTipoPersonas();
         handleGetCarreras(); // ya lo tienes
@@ -24,11 +22,8 @@ const CargarEstudiantes = () => {
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
             setEstudiantes(jsonData); // Guardamos los datos
         };
-
         reader.readAsArrayBuffer(file);
     };
-
-    // Método para enviar a tu API
     const handleGetTipoPersonas = async () => {
         try {
             const response = await axios.get("http://localhost:8000/api/tipo_persona");
@@ -43,13 +38,11 @@ const CargarEstudiantes = () => {
                 alert("Debes seleccionar un tipo de persona antes de guardar ❌");
                 return;
             }
-
             const estudiantesConDatos = estudiantes.map((est) => {
                 // Buscar carrera
                 const carreraEncontrada = carreras.find(
                     (c) => c.nombre.toLowerCase() === est.carrera.toLowerCase()
                 );
-
                 return {
                     ...est,
                     estado: '1',
@@ -58,8 +51,6 @@ const CargarEstudiantes = () => {
                     carreras: carreraEncontrada ? [carreraEncontrada.id.toString()] : null,
                 };
             });
-
-
             estudiantesConDatos.forEach(obj => {
                 delete obj.Nro;
                 delete obj.carrera;
@@ -70,15 +61,12 @@ const CargarEstudiantes = () => {
                     axios.post("http://localhost:8000/api/persona", est)
                 )
             );
-
             alert("Estudiantes guardados correctamente ✅");
         } catch (error) {
             console.error(error);
             alert("Hubo un error al guardar los estudiantes ❌");
         }
     };
-
-
     const handleGetCarreras = async () => {
         try {
             const response = await axios.get('http://localhost:8000/api/carrera', {
@@ -86,13 +74,10 @@ const CargarEstudiantes = () => {
                           Authorization: `Bearer ${token}`
                         } */
             });
-
             setCarreras(response.data.data.carrera);
-
         } catch (error) {
             // Opcional: Mostrar una notificación o mensaje de error
         }
-
     };
     return (
         <div className="container mt-4">
@@ -144,6 +129,6 @@ const CargarEstudiantes = () => {
             </table>
         </div>
     );
-};
+};  
 
 export default CargarEstudiantes;

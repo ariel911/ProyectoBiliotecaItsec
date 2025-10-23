@@ -20,8 +20,20 @@ module.exports = {
           },
           {
             model: models.persona,
-            attributes: ['id', 'nombre', 'correo', 'estado']
+            attributes: ['id', 'nombre', 'correo', 'estado'],
+            include: [{
+              model: models.persona_carrera,
+              include: [{
+                model: models.carrera,
+                attributes: ['id', 'nombre', 'estado'],
+              }]
+            },
+            {
+              model: models.tipo_persona,
+              attributes: ['id', 'nombre', 'estado'],
 
+            }
+            ]
           },
         ],
       });
@@ -44,7 +56,7 @@ module.exports = {
 
   crear: async (req, res) => {
     try {
-      const { documentoId, usuarioId, personaId ,sancionId} = req.body; // Se extraen los valores de documentoId y usuarioId del cuerpo de la solicitud
+      const { documentoId, usuarioId, personaId } = req.body; // Se extraen los valores de documentoId y usuarioId del cuerpo de la solicitud
 
       const documento = await models.documento.findByPk(documentoId); // Se busca el documento correspondiente en la base de datos
 
@@ -242,7 +254,7 @@ module.exports = {
       if (prestamo) {
         await documento.update({
           cantidad: documento.cantidad + 1, // Se actualiza el número de cantidad del documento
-          estado:1
+          estado: 1
         })
         if (prestamo) {
           await prestamo.update({

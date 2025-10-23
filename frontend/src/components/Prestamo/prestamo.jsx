@@ -6,10 +6,16 @@ import swal from 'sweetalert';
 import lunr from 'lunr';
 import Select from 'react-select';
 
-
 const prestamo = () => {
     const token = localStorage.getItem('token');
     const [selectedUser, setSelectedUser] = useState(null);
+    const [sanciones, setSanciones] = useState([]);
+    const [quitarData, setQuitarData] = useState({
+        motivo_levantamiento: "",
+        fecha_levantamiento: new Date().toISOString().split("T")[0],
+        estado: "1",
+    });
+
     const [prestamoData, setPrestamoData] = useState({
         fecha_prestamo: " ",
         fecha_devolver: " ",
@@ -31,19 +37,14 @@ const prestamo = () => {
     const [estudiantes, setEstudiantes] = useState([]);
     const [prestamos, setPrestamos] = useState([]);
     const [selectedPrestamo, setSelectedPrestamo] = useState(null);
-
     const [reservas, setReservas] = useState([]);
     const [devoluciones, setDevoluciones] = useState([]);
     const id = localStorage.getItem('id');
-
     const [fechaDevuelta, setFechaDevuelta] = useState({
         fecha_devuelta: ''
     });
-
     const [fecha_prestamo, setFecha_prestamo] = useState('');
-
     const [estadoDocumento, setEstadoDocumento] = useState('');
-
     const [pres, setPres] = useState(null);
     //upadte const update
     useEffect(() => {
@@ -52,11 +53,9 @@ const prestamo = () => {
         handleEstudiantes();
         handleGetPrestamos();
         handleGetDevoluciones();
-        document.getElementById('nombreEstudiante').defaultValue = selectedOption.nombre || '';
+        getSanciones();
         const hoy = new Date().toISOString().split("T")[0];
         setFechaDevuelta((prev) => ({ ...prev, fecha_devuelta: hoy }));
-
-
         const getCurrentDateTime = (daysToAdd = 0) => {
             const now = new Date();
             now.setDate(now.getDate() + daysToAdd); // Agregar los días necesarios
@@ -68,13 +67,10 @@ const prestamo = () => {
             return `${year}-${month}-${day}T${hours}:${minutes}`;
         };
         setFecha_prestamo(getCurrentDateTime())
-
-
     }, []);
 
     const sedHandleUsuario = (usuario) => {
         setSelectedUser(usuario);
-
     }
     const handleGetUsers = async () => {
         const res = await axios({
@@ -89,10 +85,7 @@ const prestamo = () => {
         setSearchResults(res.data.data.documentos)
     };
 
-
     const handleEstudiantes = async () => {
-
-
         const res = await axios({
             url: "http://localhost:8000/api/persona",
             method: "GET",
@@ -100,9 +93,7 @@ const prestamo = () => {
                 Authorization: `Bearer ${token}`,
             }, */
         });
-
         setEstudiantes(res.data.data.personas);
-
     };
 
 
@@ -135,16 +126,12 @@ const prestamo = () => {
                     personaId: selectedOption['value'],
                     documentoId: selectedUser.id,
                 };
-
                 // Enviar la solicitud de préstamo
                 await axios({
                     url: 'http://localhost:8000/api/prestamo/PrestamoR',
                     method: 'POST',
                     data: lendingData,
                 });
-
-                // Limpiar los datos y actualizar el estado de la aplicación
-
                 setPrestamoData({
                     fecha_devolver: '',
                     observaciones: ''
@@ -256,8 +243,6 @@ const prestamo = () => {
         (autor.label + "").includes(selectedOption)
     );
 
-
-
     function generarClaveUnica() {
         const caracteres = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const longitud = 8;
@@ -270,7 +255,6 @@ const prestamo = () => {
 
         return clave;
     }
-
     //buscador
     var idx = lunr(function () {
         this.field('id')
@@ -296,25 +280,15 @@ const prestamo = () => {
             })
         );
     })
-
-
     const encontrado = [];
-
-
-
-
     const handleChange = (event) => {
         const text = event.target.value;
         setSearchText(text);
-
-        // Realiza la búsqueda en función del texto ingresado (puedes usar una función de búsqueda o llamar a una API aquí)
-        // Por ahora, simplemente vamos a simular algunos resultados de búsqueda
         const results = simulateSearch(text);
 
         setSearchResults(results);
     };
 
-    // Función de simulación de búsqueda (puedes reemplazarla con tu lógica de búsqueda real)
     const simulateSearch = (text) => {
         // Simulación de búsqueda en base al texto ingresado
         const aqui = idx.search(text)
@@ -326,13 +300,11 @@ const prestamo = () => {
         }
         return encontrado;
     };
-
     //prestamos
     const handleGetPrestamos = async () => {
         const res = await axios({
             url: 'http://localhost:8000/api/prestamo',
             method: 'GET',
-
         });
         setPrestamos(res.data.data.prestamos);
     };
@@ -340,41 +312,32 @@ const prestamo = () => {
         const res = await axios({
             url: 'http://localhost:8000/reservas/reserva',
             method: 'GET',
-
         });
         setReservas(res.data.data.reserva);
     };
-
-
     const handleGetDevoluciones = async () => {
         const res = await axios({
             url: "http://localhost:8000/api/devolucion",
             method: "GET",
-
         });
         setDevoluciones(res.data.data.devolucion);
     };
-
-
     const hadlePrestamo = (prest) => {
         setEstadoDocumento('');
         setPres(prest)
-
     }
     const handlePostDevolucion = async () => {
-
         const nuevoDevolucion = {
             nombrePersona: pres.persona.nombre,
             titulo: pres.documento.titulo,
             prestamo: pres.id,
-            fecha_devuelta: fechaDevuelta,
+            fecha_devuelta: fechaDevuelta.fecha_devuelta,
             estadoLibro: estadoDocumento
         };
         await axios({
             url: `http://localhost:8000/api/devolucion`,
             method: 'POST',
             data: nuevoDevolucion,
-
         });
         await axios({
             url: `http://localhost:8000/api/prestamo/baja/${pres.id}`,
@@ -383,7 +346,6 @@ const prestamo = () => {
                 estado: 0
             }
         });
-
         const nuevosPrestamos = prestamos.filter((prestamo) => prestamo.id !== pres.id);
         setPrestamos(nuevosPrestamos);
         setEstadoDocumento('');
@@ -395,11 +357,7 @@ const prestamo = () => {
             icon: "success",
             button: "Ok",
         });
-
-
-
     };
-
     const handleSancionarPrestamo = async () => {
         try {
             if (!selectedPrestamo.id || !sancionData.tipo_sancion || !sancionData.descripcion) {
@@ -411,7 +369,6 @@ const prestamo = () => {
                 });
                 return;
             }
-
             await axios.post("http://localhost:8000/api/sancion", {
                 prestamoId: selectedPrestamo.id, // 👈 ahora también enviamos el préstamo
                 personaId: selectedPrestamo.persona.id,
@@ -424,6 +381,8 @@ const prestamo = () => {
 
             // Actualiza las listas
             handleGetUsers();
+            handleGetPrestamos();
+            getSanciones();
             // Limpia el formulario
             setSancionData({
                 tipo_sancion: '',
@@ -448,401 +407,530 @@ const prestamo = () => {
             });
         }
     };
+    const confirmarQuitarSancion = async () => {
+        console.log('pe', selectedUser)
+        try {
+            await axios.post("http://localhost:8000/api/sancion_historial", {
+                ...quitarData,
+                sancionId: selectedUser.id,
+                personaId: selectedUser.persona.id,
+                prestamoId: selectedUser.prestamo.id,
+            });
+            if (selectedUser.prestamo.id && selectedUser.prestamo.documento.id) {
+                await axios.put(
+                    `http://localhost:8000/api/documento/actualizarDoc/${selectedUser.prestamo.documento.id}`
+                );
+            }
+            swal("✅ Sanción levantada con éxito", "", "success");
+            getSanciones();
+            handleGetUsers();
+        } catch (err) {
+            console.error(err);
+            swal("❌ Error al levantar sanción", "", "error");
+        }
+    };
+    const getSanciones = async () => {
+        const res = await axios.get("http://localhost:8000/api/sancion");
+        setSanciones(res.data.data.sancion);
+    };
+    const abrirModalQuitar = (sancion) => {
+        setSelectedUser(sancion);
+        setQuitarData({
+            motivo_levantamiento: "",
+            fecha_levantamiento: new Date().toISOString().split("T")[0],
+            estado: "1",
+        });
+        new window.bootstrap.Modal(
+            document.getElementById("modalQuitarSancion")
+        ).show();
+    };
 
-    return (
-        <div className='prestamos'>
-            {/*modal prestamo} */}
-            <h1 className='tituloPrestamos'>Prestamos</h1>
-            <ul className="nav nav-tabs" role="tablist">
-                <li className="nav-item">
-                    <a className="nav-link active" data-bs-toggle="tab" href="#prestar" role="tab">Prestar</a>
-                </li>
-                <li className="nav-item">
-                    <a className="nav-link" data-bs-toggle="tab" href="#historial" role="tab">Prestamos</a>
-                </li>
-                <li className="nav-item">
-                    <a className="nav-link" data-bs-toggle="tab" href="#devolver" role="tab">Devueltos</a>
-                </li>
-                <li className="nav-item">
-                    <a className="nav-link" data-bs-toggle="tab" href="#reservas" role="tab">Reservas</a>
-                </li>
-            </ul>
+    return <div className="container-fluid prestamos mt-4">
+        <h2 className="text-center mb-4 fw-bold text-primary">📚 Gestión de Préstamos</h2>
 
-            {/* aqui empieza modal de prestamos que se tiene */}
-            <div className="tab-content" id="myTabContent"  >
-                <div className="tab-pane fade" id="devolver" role="tabpanel">
-                    <div className="tablaPrestamos table-responsive">
-                        <table className="table table-fixed">
-                            <thead className="table-dark ">
-                                <tr>
-                                    <th scope="col">Nº</th>
-                                    <th scope="col">Nombre</th>
-                                    <th scope="col ">Documento</th>
-                                    <th scope="col">Fecha devuelta</th>
-                                    <th scope="col">Estado Libro</th>
+        {/* NAV TABS */}
+        <ul className="nav nav-tabs justify-content" id="prestamoTabs" role="tablist">
+            <li className="nav-item">
+                <a className="nav-link active fw-semibold" data-bs-toggle="tab" href="#prestar" role="tab">Prestar</a>
+            </li>
+            <li className="nav-item">
+                <a className="nav-link fw-semibold" data-bs-toggle="tab" href="#historial" role="tab">Préstamos</a>
+            </li>
+            <li className="nav-item">
+                <a className="nav-link fw-semibold" data-bs-toggle="tab" href="#reservas" role="tab">Reservas</a>
+            </li>
+            <li className="nav-item">
+                <a className="nav-link fw-semibold" data-bs-toggle="tab" href="#devolver" role="tab">Devueltos</a>
+            </li>
+            <li className="nav-item">
+                <a className="nav-link fw-semibold" data-bs-toggle="tab" href="#Sancionados" role="tab">Sancionados</a>
+            </li>
+        </ul>
+
+        {/* CONTENIDO DE LAS PESTAÑAS */}
+        <div className="tab-content p-3 border border-top-0 bg-light rounded-bottom shadow-sm" id="myTabContent">
+
+            {/* TAB - PRESTAR */}
+            <div className="tab-pane fade show active" id="prestar" role="tabpanel">
+                <div className="mb-3">
+                    <input
+                        type="text"
+                        className="form-control shadow-sm"
+                        placeholder="🔍 Buscar por título, área o tipo..."
+                        value={searchText}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                    <table className="table table-hover align-middle text-center">
+                        <thead className="table-primary sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>Título</th>
+                                <th>Autores</th>
+                                <th>Cantidad</th>
+                                <th>Tipo</th>
+                                <th>Área</th>
+                                <th>Formato</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {searchResults.map((doc, i) => (
+                                <tr key={i}>
+                                    <td>{i + 1}</td>
+                                    <td>{doc.titulo}</td>
+                                    <td>
+                                        {doc.documento_autors.map((a, idx) => (
+                                            <span key={idx}>
+                                                {a.autor?.nombre}
+                                                {idx < doc.documento_autors.length - 1 ? ", " : ""}
+                                            </span>
+                                        ))}
+                                    </td>
+                                    <td>{doc.cantidad}</td>
+                                    <td>{doc.tipo_doc?.nombre}</td>
+                                    <td>{doc.area?.nombre}</td>
+                                    <td>{doc.formato?.nombre}</td>
+                                    <td>
+                                        <button
+                                            className="btn btn-outline-primary btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPrestamo"
+                                            onClick={() => sedHandleUsuario(doc)}>
+                                            Prestar
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {devoluciones.map((devolucion, index) => (
-                                    <tr key={devolucion.id}>
-                                        <td>{index + 1}</td>
-                                        <td>{devolucion.nombrePersona}</td>
-                                        <td>{devolucion.titulo}</td>
-                                        <td>{devolucion?.fecha_devuelta?.slice(0, 10)}</td>
-                                        <td>{devolucion?.estadoLibro}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-                <div className="modal fade" id="modalCrearSancionPrestamo" tabIndex="-1" aria-labelledby="modalCrearSancionPrestamoLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5" id="modalCrearSancionPrestamoLabel">Sanción a Préstamo</h1>
-                                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div className="modal-body">
-                                <form>
-                                    {/* Tipo de sanción */}
-                                    <div className="mb-3">
-                                        <label htmlFor="tipoSancionPrestamo" className="form-label">Tipo de Sanción</label>
-                                        <select
-                                            className="form-select"
-                                            id="tipoSancionPrestamo"
-                                            value={sancionData.tipo_sancion}
-                                            onChange={(e) => setSancionData({ ...sancionData, tipo_sancion: e.target.value })}
-                                        >
-                                            <option value="">Seleccione una opción</option>
-                                            <option value="Retraso en devolución">Retraso en devolución</option>
-                                            <option value="Daño al material prestado">Daño al material prestado</option>
-                                            <option value="Pérdida del material">Pérdida del material</option>
-                                            <option value="Otro">Otro</option>
-                                        </select>
-                                    </div>
+            </div>
 
-                                    {/* Descripción */}
-                                    <div className="mb-3">
-                                        <label htmlFor="descripcionPrestamo" className="form-label">Descripción</label>
-                                        <textarea
-                                            className="form-control"
-                                            id="descripcionPrestamo"
-                                            rows="3"
-                                            value={sancionData.descripcion}
-                                            onChange={(e) => setSancionData({ ...sancionData, descripcion: e.target.value })}
-                                            placeholder="Detalles de la sanción..."
-                                        ></textarea>
-                                    </div>
-
-                                    {/* Fecha inicio */}
-                                    <div className="mb-3">
-                                        <label htmlFor="fechaInicioPrestamo" className="form-label">Fecha de Inicio</label>
-                                        <input
-                                            type="date"
-                                            className="form-control"
-                                            id="fechaInicioPrestamo"
-                                            value={sancionData.fecha_inicio}
-                                            onChange={(e) => setSancionData({ ...sancionData, fecha_inicio: e.target.value })}
-                                        />
-                                    </div>
-
-                                    {/* Fecha fin */}
-                                    <div className="mb-3">
-                                        <label htmlFor="fechaFinPrestamo" className="form-label">Fecha de Fin</label>
-                                        <input
-                                            type="date"
-                                            className="form-control"
-                                            id="fechaFinPrestamo"
-                                            value={sancionData.fecha_fin}
-                                            onChange={(e) => setSancionData({ ...sancionData, fecha_fin: e.target.value })}
-                                        />
-                                    </div>
-                                </form>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary"
-                                    onClick={() => handleSancionarPrestamo()}
-                                    data-bs-dismiss="modal"
-                                >
-                                    Guardar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* aqui empieza modal prestamo reservas*/}
-                <div className={`modal fade`} id="modalPrestamoReservas" taindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5" id="exampleModalLabel">Nuevo Prestamo</h1>
-                                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" ></button>
-                            </div>
-                            <div className="modal-body">
-                                <form >
-                                    <div className="mb-3">
-                                        <label htmlFor="recipient-name" className="col-form-label">Prestamo Fecha:</label>
-                                        <input type="datetime-local" className="form-control" id="fecha_prestamo" name="fecha_prestamo" min="2023-05-00" max="2028-0-0" value={fecha_prestamo}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="recipient-name" className="col-form-label">Devolver Fecha:</label>
-                                        <input type="datetime-local" className="form-control" id="fecha_devolver" name="fecha_devolver" min="2023-05-00" max="2028-0-0" value={prestamoData.fecha_devolver}
-                                            onChange={(e) =>
-                                                setPrestamoData({ ...prestamoData, fecha_devolver: e.target.value })
-                                            } />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="recipient-name" className="col-form-label">Observaciones:</label>
-                                        <input type="text" className="form-control" id="observaciones" name="observaciones" value={prestamoData.observaciones}
-                                            onChange={(e) =>
-                                                setPrestamoData({ ...prestamoData, observaciones: e.target.value })
-                                            } />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="recipient-name" className="col-form-label">Garantia:</label>
-                                        <input type="text" className="form-control" id="garantia" name="garantia" value={prestamoData.garantia}
-                                            onChange={(e) =>
-                                                setPrestamoData({ ...prestamoData, garantia: e.target.value })
-                                            } />
-                                    </div>
-                                    <div className='mb-3 col selectAutores'>
-                                        <label htmlFor="recipient-name" className="col-form-label">Buscar por Ci de estudiante:</label>
-                                        <Select
-                                            options={filteredOptions}
-                                            onChange={handleSelectChange}
-                                            isSearchable
-                                            placeholder="Selecciona Estudiante"
-                                            value={selectedOption}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <input type="nombreEstudiante" className="form-control" id="nombreEstudiante" defaultValue={selectedOption?.nombre} disabled />
-                                    </div>
-                                </form>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="submit" className="btn btn-primary" onClick={handlePrestamoR} data-bs-dismiss="modal">Guardar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* aqui empieza modal prestamo */}
-                <div className={`modal fade`} id="modalPrestamo" taindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5" id="exampleModalLabel">Nuevo Prestamo</h1>
-                                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" ></button>
-                            </div>
-                            <div className="modal-body">
-                                <form >
-                                    <div className="mb-3">
-                                        <label htmlFor="recipient-name" className="col-form-label">Prestamo Fecha:</label>
-                                        <input type="datetime-local" className="form-control" id="fecha_prestamo" name="fecha_prestamo" min="2023-05-00" max="2028-0-0" value={fecha_prestamo}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="recipient-name" className="col-form-label">Devolver Fecha:</label>
-                                        <input type="datetime-local" className="form-control" id="fecha_devolver" name="fecha_devolver" min="2023-05-00" max="2028-0-0" value={prestamoData.fecha_devolver}
-                                            onChange={(e) =>
-                                                setPrestamoData({ ...prestamoData, fecha_devolver: e.target.value })
-                                            } />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="recipient-name" className="col-form-label">Observaciones:</label>
-                                        <input type="text" className="form-control" id="observaciones" name="observaciones" value={prestamoData.observaciones}
-                                            onChange={(e) =>
-                                                setPrestamoData({ ...prestamoData, observaciones: e.target.value })
-                                            } />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="recipient-name" className="col-form-label">Garantia:</label>
-                                        <input type="text" className="form-control" id="garantia" name="garantia" value={prestamoData.garantia}
-                                            onChange={(e) =>
-                                                setPrestamoData({ ...prestamoData, garantia: e.target.value })
-                                            } />
-                                    </div>
-                                    <div className='mb-3 col selectAutores'>
-                                        <label htmlFor="recipient-name" className="col-form-label">Buscar por Ci de estudiante:</label>
-                                        <Select
-                                            options={filteredOptions}
-                                            onChange={handleSelectChange}
-                                            isSearchable
-                                            placeholder="Selecciona Estudiante"
-                                            value={selectedOption}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <input type="nombreEstudiante" className="form-control" id="nombreEstudiante" defaultValue={selectedOption?.nombre} disabled />
-                                    </div>
-                                </form>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="submit" className="btn btn-primary" onClick={handlePrestamo} data-bs-dismiss="modal">Guardar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/*   reservas */}
-                <div className="tab-pane fade  " id="reservas" role="tabpanel">
-                    <div className="mt-4">
-                        <input type="text" className="form-control mb-3" placeholder="Buscar por título, carrera, área" value={searchText} onChange={handleChange} />
-
-                        <div className="table-responsive tablaPrestamos">
-                            <table className="table table-bordered">
-                                <thead className="table-dark">
-                                    <tr>
-                                        <th scope="col">Nº</th>
-                                        <th scope="col ">Titulo</th>
-                                        <th scope="col">Persona</th>
-                                        <th scope="col">fecha reserva </th>
-                                        <th scope="col">fecha validez</th>
-                                        <th scope="col">Accion</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {reservas.map((reserva, ind) => reserva.estado === 1 && (
-                                        <tr key={generarClaveUnica()}>
-                                            <td>{ind + 1}</td>
-                                            <td>{reserva?.documento.titulo}</td>
-                                            <td>{reserva?.persona.nombre}</td>
-                                            <td>{reserva?.fecha_reserva.slice(0, 10)}</td>
-                                            <td>{reserva?.fecha_validez.slice(0, 10)}</td>
-                                            <td>
-                                                <button className='btn btn-secondary boton' data-bs-toggle="modal" data-bs-target="#modalPrestamoReservas" data-bs-whatever="@mdo" onClick={() => sedHandleUsuario(reserva.documento)}>Prestar</button>
-                                                <button className='btn btn-danger boton' data-bs-toggle="modal" data-bs-target="#modalPrestamoReservas" data-bs-whatever="@mdo" onClick={() => sedHandleUsuario(reserva.documento)}>Cancelar</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                {/* devolucion */}
-                <div className={`modal fade`} id="modalDevolucion" taindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h1 className="modal-title fs-5" id="exampleModalLabel">Devolución</h1>
-                                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" ></button>
-                            </div>
-                            <div className="modal-body">
-                                <form >
-                                    <div className="mb-3">
-                                        <label htmlFor="recipient-name" className="col-form-label">fecha devolución:</label>
-                                        <input type="date" className="form-control" id="fecha_devuelta" name="fecha_devuelta" value={fechaDevuelta.fecha_devuelta}
-                                            onChange={(e) => setFechaDevuelta({ ...fechaDevuelta, fecha_devuelta: e.target.value })} />
-                                    </div>
-
-                                    <div className="mb-3">
-                                        <label htmlFor="recipient-name" className="col-form-label">Estado Documento:</label>
-                                        <input type="text" className="form-control" id="estadoDocumento" name="estadoDocumento" value={pres?.estadoDocumento} onChange={(e) =>
-                                            setEstadoDocumento(e.target.value)
-
-                                        } required />
-                                    </div>
-                                </form>
-                            </div>
-                            <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="submit" className="btn btn-primary" onClick={handlePostDevolucion} data-bs-dismiss="modal">Guardar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* prestamos */}
-                <div className="tab-pane fade" id="historial" role="tabpanel">
-                    <div className="tablaPrestamos table-responsive">
-                        <table className="table table-fixed">
-                            <thead className="table-dark sticky-top">
-                                <tr>
-                                    <th scope="col">Nº</th>
-                                    <th scope="col">Nombre</th>
-                                    <th scope="col">Prestamo Fecha</th>
-                                    <th scope="col">Devolver Fecha</th>
-                                    <th scope="col">Documento</th>
-                                    <th scope="col">Acción</th>
+            {/* TAB - PRESTAMOS */}
+            <div className="tab-pane fade" id="historial" role="tabpanel">
+                <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                    <table className="table table-hover text-center align-middle">
+                        <thead className="table-dark sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th>Fecha Préstamo</th>
+                                <th>Fecha Devolver</th>
+                                <th>Documento</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {prestamos.map((p, i) => p.estado === 1 && (
+                                <tr key={p.id}>
+                                    <td>{i + 1}</td>
+                                    <td>{p.persona?.nombre}</td>
+                                    <td>{p.fecha_prestamo?.slice(0, 10)}</td>
+                                    <td>{p.fecha_devolucion?.slice(0, 10)}</td>
+                                    <td>{p.documento?.titulo}</td>
+                                    <td className="d-flex justify-content-center gap-2">
+                                        <button
+                                            className="btn btn-outline-success btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalDevolucion"
+                                            onClick={() => hadlePrestamo(p)}>
+                                            Devolver
+                                        </button>
+                                        <button
+                                            className="btn btn-outline-warning btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalCrearSancionPrestamo"
+                                            onClick={() => setSelectedPrestamo(p)}>
+                                            Sancionar
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {prestamos.map((prestamo, index) => prestamo.estado === 1 && (
-                                    <tr key={prestamo.id}>
-                                        <td>{index + 1}</td>
-                                        <td>{`${prestamo?.persona?.nombre}`}</td>
-                                        <td>{prestamo?.fecha_prestamo?.slice(0, 10)}</td>
-                                        <td>{prestamo?.fecha_devolucion?.slice(0, 10)}</td>
-                                        <td>{prestamo?.documento?.titulo}</td>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* TAB - RESERVAS */}
+            <div className="tab-pane fade" id="reservas" role="tabpanel">
+                <div className="mb-3">
+                    <input
+                        type="text"
+                        className="form-control shadow-sm"
+                        placeholder="🔍 Buscar reserva por título o persona..."
+                        value={searchText}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                    <table className="table table-hover text-center align-middle">
+                        <thead className="table-secondary sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>Título</th>
+                                <th>Persona</th>
+                                <th>Fecha Reserva</th>
+                                <th>Validez</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {reservas.map((r, i) => r.estado === 1 && (
+                                <tr key={r.id}>
+                                    <td>{i + 1}</td>
+                                    <td>{r.documento?.titulo}</td>
+                                    <td>{r.persona?.nombre}</td>
+                                    <td>{r.fecha_reserva?.slice(0, 10)}</td>
+                                    <td>{r.fecha_validez?.slice(0, 10)}</td>
+                                    <td className="d-flex justify-content-center gap-2">
+                                        <button
+                                            className="btn btn-outline-primary btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPrestamoReservas"
+                                            onClick={() => sedHandleUsuario(r.documento)}>
+                                            Prestar
+                                        </button>
+                                        <button
+                                            className="btn btn-outline-danger btn-sm"
+                                            onClick={() => handleEliminarReserva(r.id)}>
+                                            Cancelar
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* TAB - DEVUELTOS */}
+            <div className="tab-pane fade" id="devolver" role="tabpanel">
+                <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                    <table className="table table-striped text-center align-middle">
+                        <thead className="table-success sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th>Documento</th>
+                                <th>Fecha Devuelta</th>
+                                <th>Estado Libro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {devoluciones.map((d, i) => (
+                                <tr key={d.id}>
+                                    <td>{i + 1}</td>
+                                    <td>{d.nombrePersona}</td>
+                                    <td>{d.titulo}</td>
+                                    <td>{d.fecha_devuelta?.slice(0, 10)}</td>
+                                    <td>{d.estadoLibro}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* TAB - SANCIONADOS */}
+            <div className="tab-pane fade" id="Sancionados" role="tabpanel">
+
+                <div className="table-responsive" style={{ maxHeight: '540px', overflowY: 'auto' }}>
+
+                    <table className="table table-hover align-middle">
+                        <thead className="table-dark sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th>Sanción</th>
+                                <th>Descripción</th>
+                                <th>CI</th>
+                                <th>Celular</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sanciones
+                                ?.filter((s) => s.estado == 1)
+                                .map((s, i) => (
+                                    <tr key={s.id}>
+                                        <td>{i + 1}</td>
+                                        <td>{s.persona?.nombre}</td>
+                                        <td>{s.tipo_sancion}</td>
+                                        <td>{s.descripcion}</td>
+                                        <td>{s.persona?.ci}</td>
+                                        <td>{s.persona?.celular}</td>
                                         <td>
-                                            <button className="btn btn-danger boton" data-bs-toggle="modal" data-bs-target="#modalDevolucion" data-bs-whatever="@mdo" onClick={() => hadlePrestamo(prestamo)}>
-                                                Devolver
-                                            </button>
                                             <button
-                                                type="button"
-                                                className="btn btn-warning btn-sm"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#modalCrearSancionPrestamo"
-                                                onClick={() => setSelectedPrestamo(prestamo)} // guardas el id del préstamo seleccionado
-                                            >Sancionar Préstamo
+                                                className="btn btn-sm btn-warning"
+                                                onClick={() => abrirModalQuitar(s)}
+                                            >
+                                                <i className="bi bi-x-circle me-1"></i>
+                                                Quitar sanción
                                             </button>
                                         </td>
                                     </tr>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                {/*   prestar */}
-                <div className="tab-pane fade show active " id="prestar" role="tabpanel">
-                    <div className="mt-4">
-                        <input type="text" className="form-control mb-3" placeholder="Buscar por título, carrera, área" value={searchText} onChange={handleChange} />
+                        </tbody>
+                    </table>
 
-                        <div className="table-responsive tablaPrestamos">
-                            <table className="table table-bordered">
-                                <thead className="table-dark">
-                                    <tr>
-                                        <th scope="col">Nº</th>
-                                        <th scope="col ">Titulo</th>
-                                        <th scope="col">Autores</th>
-                                        <th scope="col">Cantidad </th>
-                                        <th scope="col">Tipo Documento</th>
-                                        <th scope="col">Area</th>
-                                        <th scope="col">Formato</th>
-                                        <th scope="col">Accion</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {searchResults.map((documento, ind) => (
-                                        <tr key={generarClaveUnica()}>
-                                            <td>{ind + 1}</td>
-                                            <td>{documento.titulo}</td>
-                                            <td>{`${documento.documento_autors[0]?.autor?.nombre}  ${documento.documento_autors[1] ? ", " + documento.documento_autors[1]?.autor?.nombre : ' '}`}</td>
-                                            <td>{documento?.cantidad}</td>
-                                            <td>{documento?.tipo_doc?.nombre}</td>
-                                            <td>{documento?.area?.nombre}</td>
-                                            <td>{documento?.formato?.nombre}</td>
-                                            <td>
-                                                <button className='btn btn-secondary boton' data-bs-toggle="modal" data-bs-target="#modalPrestamo" data-bs-whatever="@mdo" onClick={() => sedHandleUsuario(documento)}>Prestar</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                </div>
+
+            </div>
+
+            {/* ------------------- MODAL PRESTAMO ------------------- */}
+            <div className="modal fade" id="modalPrestamo" tabIndex="-1" aria-labelledby="modalPrestamoLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title" id="modalPrestamoLabel">Nuevo Préstamo</h5>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div className="modal-body">
+                            <form>
+                                <div className="mb-3">
+                                    <label className="form-label">Fecha Préstamo</label>
+                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Fecha Devolver</label>
+                                    <input type="datetime-local" className="form-control" value={prestamoData.fecha_devolver}
+                                        onChange={e => setPrestamoData({ ...prestamoData, fecha_devolver: e.target.value })} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Observaciones</label>
+                                    <input type="text" className="form-control" value={prestamoData.observaciones}
+                                        onChange={e => setPrestamoData({ ...prestamoData, observaciones: e.target.value })} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Garantía</label>
+                                    <input type="text" className="form-control" value={prestamoData.garantia}
+                                        onChange={e => setPrestamoData({ ...prestamoData, garantia: e.target.value })} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Buscar Estudiante por CI</label>
+                                    <Select
+                                        options={filteredOptions}
+                                        onChange={handleSelectChange}
+                                        isSearchable
+                                        placeholder="Selecciona Estudiante"
+                                        value={selectedOption}
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <input type="text" className="form-control" value={selectedOption?.nombre} disabled />
+                                </div>
+                            </form>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" className="btn btn-primary" onClick={handlePrestamo} data-bs-dismiss="modal">Guardar</button>
                         </div>
                     </div>
                 </div>
             </div>
+            {/* MODAL QUITAR SANCION */}
+            <div className="modal fade" id="modalQuitarSancion" tabIndex="-1" aria-hidden="true">
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content border-0 shadow">
+                        <div className="modal-header bg-warning text-dark">
+                            <h5 className="modal-title">
+                                <i className="bi bi-x-circle-fill me-2"></i> Quitar sanción
+                            </h5>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                data-bs-dismiss="modal"
+                            ></button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="mb-3">
+                                <label className="form-label">Motivo del levantamiento</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={quitarData.motivo_levantamiento}
+                                    onChange={(e) =>
+                                        setQuitarData({
+                                            ...quitarData,
+                                            motivo_levantamiento: e.target.value,
+                                        })
+                                    }
+                                />
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">Fecha</label>
+                                <input
+                                    type="date"
+                                    className="form-control"
+                                    value={quitarData.fecha_levantamiento}
+                                    onChange={(e) =>
+                                        setQuitarData({
+                                            ...quitarData,
+                                            fecha_levantamiento: e.target.value,
+                                        })
+                                    }
+                                />
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button
+                                className="btn btn-secondary"
+                                data-bs-dismiss="modal"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                className="btn btn-success"
+                                onClick={confirmarQuitarSancion}
+                                data-bs-dismiss="modal"
+                            >
+                                Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ------------------- MODAL PRESTAMO RESERVAS ------------------- */}
+            <div className="modal fade" id="modalPrestamoReservas" tabIndex="-1" aria-labelledby="modalPrestamoReservasLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title" id="modalPrestamoReservasLabel">Nuevo Préstamo desde Reserva</h5>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div className="modal-body">
+                            <form>
+                                <div className="mb-3">
+                                    <label className="form-label">Fecha Préstamo</label>
+                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Fecha Devolver</label>
+                                    <input type="datetime-local" className="form-control" value={prestamoData.fecha_devolver}
+                                        onChange={e => setPrestamoData({ ...prestamoData, fecha_devolver: e.target.value })} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Observaciones</label>
+                                    <input type="text" className="form-control" value={prestamoData.observaciones}
+                                        onChange={e => setPrestamoData({ ...prestamoData, observaciones: e.target.value })} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Garantía</label>
+                                    <input type="text" className="form-control" value={prestamoData.garantia}
+                                        onChange={e => setPrestamoData({ ...prestamoData, garantia: e.target.value })} />
+                                </div>
+                            </form>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" className="btn btn-primary" onClick={handlePrestamoR} data-bs-dismiss="modal">Guardar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ------------------- MODAL DEVOLUCION ------------------- */}
+            <div className="modal fade" id="modalDevolucion" tabIndex="-1" aria-labelledby="modalDevolucionLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title" id="modalDevolucionLabel">Devolución</h5>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div className="modal-body">
+                            <form>
+                                <div className="mb-3">
+                                    <label className="form-label">Fecha Devolución</label>
+                                    <input type="date" className="form-control" value={fechaDevuelta.fecha_devuelta}
+                                        onChange={e => setFechaDevuelta({ ...fechaDevuelta, fecha_devuelta: e.target.value })} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Estado Documento</label>
+                                    <input type="text" className="form-control" value={estadoDocumento} onChange={e => setEstadoDocumento(e.target.value)} />
+                                </div>
+                            </form>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" className="btn btn-primary" onClick={handlePostDevolucion} data-bs-dismiss="modal">Guardar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ------------------- MODAL SANCIONAR PRESTAMO ------------------- */}
+            <div className="modal fade" id="modalCrearSancionPrestamo" tabIndex="-1" aria-labelledby="modalCrearSancionPrestamoLabel" aria-hidden="true">
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title" id="modalCrearSancionPrestamoLabel">Sancionar Préstamo</h5>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div className="modal-body">
+                            <form>
+                                <div className="mb-3">
+                                    <label className="form-label">Tipo Sanción</label>
+                                    <select className="form-select" value={sancionData.tipo_sancion}
+                                        onChange={e => setSancionData({ ...sancionData, tipo_sancion: e.target.value })}>
+                                        <option value="">Seleccione una opción</option>
+                                        <option value="Retraso en devolución">Retraso en devolución</option>
+                                        <option value="Daño al material prestado">Daño al material prestado</option>
+                                        <option value="Pérdida del material">Pérdida del material</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Descripción</label>
+                                    <textarea className="form-control" rows="3" value={sancionData.descripcion}
+                                        onChange={e => setSancionData({ ...sancionData, descripcion: e.target.value })}></textarea>
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Fecha Inicio</label>
+                                    <input type="date" className="form-control" value={sancionData.fecha_inicio}
+                                        onChange={e => setSancionData({ ...sancionData, fecha_inicio: e.target.value })} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Fecha Fin</label>
+                                    <input type="date" className="form-control" value={sancionData.fecha_fin}
+                                        onChange={e => setSancionData({ ...sancionData, fecha_fin: e.target.value })} />
+                                </div>
+                            </form>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" className="btn btn-primary" onClick={handleSancionarPrestamo} data-bs-dismiss="modal">Guardar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
-    );
+    </div>
+
+
 };
 
 export default prestamo;

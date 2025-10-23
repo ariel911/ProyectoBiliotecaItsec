@@ -11,14 +11,14 @@ module.exports = {
         attributes: ['id', 'nombre', 'correo', 'clave', 'estado'],
         include: [{
           model: models.rol,
-          attributes: ['id', 'nombre_rol','estado'],
-          include:[
+          attributes: ['id', 'nombre_rol', 'estado'],
+          include: [
             {
-              model:models.menu_rol,
-              attributes: ['menuId','rolId'],
-              include:[{
-                model:models.menu,
-                attributes: ['id','nombre_menu'],
+              model: models.menu_rol,
+              attributes: ['menuId', 'rolId'],
+              include: [{
+                model: models.menu,
+                attributes: ['id', 'nombre_menu'],
               }]
             }
           ]
@@ -139,7 +139,54 @@ module.exports = {
       });
     }
   },
-  
+  // BUSCAR USUARIO POR ID
+  buscarPorId: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const usuario = await models.usuario.findByPk(id, {
+        attributes: ['id', 'nombre', 'correo', 'estado'],
+        include: [
+          {
+            model: models.rol,
+            attributes: ['id', 'nombre_rol', 'estado'],
+            include: [
+              {
+                model: models.menu_rol,
+                attributes: ['menuId', 'rolId'],
+                include: [
+                  {
+                    model: models.menu,
+                    attributes: ['id', 'nombre_menu']
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      });
+
+      if (!usuario) {
+        return res.status(404).json({
+          success: false,
+          data: { message: "Usuario no encontrado" }
+        });
+      }
+
+      res.json({
+        success: true,
+        data: usuario
+      });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        data: { message: "Ha ocurrido un error al buscar el usuario" }
+      });
+    }
+  },
+
 
 
 }
