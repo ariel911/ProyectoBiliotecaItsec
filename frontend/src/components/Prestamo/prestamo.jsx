@@ -101,12 +101,13 @@ const prestamo = () => {
         if (selectedOption['sancion'] == null) {
             try {
                 // Buscar la primera reserva activa de la persona seleccionada
-                console.log(reservas)
+
                 const reservaPersona = reservas.find(
-                    reserva => reserva.persona.id === selectedOption['value'] && reserva.estado === 1
+                    reserva => reserva.persona.id === selectedUser.persona.id && reserva.estado === 1
                 );
 
                 // Si hay una reserva activa, darla de baja
+                console.log("r:", reservas, "sele:", selectedUser.persona.id)
                 if (reservaPersona) {
                     await axios({
                         url: `http://localhost:8000/reservas/reserva/baja/${reservaPersona.id}`,
@@ -123,8 +124,8 @@ const prestamo = () => {
                     garantia: prestamoData.garantia,
                     usuarioId: id,
                     estado: 1,
-                    personaId: selectedOption['value'],
-                    documentoId: selectedUser.id,
+                    personaId: selectedUser.persona.id,
+                    documentoId: selectedUser.documento.id,
                 };
                 // Enviar la solicitud de préstamo
                 await axios({
@@ -328,10 +329,10 @@ const prestamo = () => {
     }
     const handlePostDevolucion = async () => {
         const nuevoDevolucion = {
-            nombrePersona: pres.persona.nombre,
-            titulo: pres.documento.titulo,
+            nombrePersona: pres.persona?.nombre,
+            titulo: pres.documento?.titulo,
             prestamo: pres.id,
-            fecha_devuelta: fechaDevuelta.fecha_devuelta,
+            fecha_devuelta: fechaDevuelta?.fecha_devuelta,
             estadoLibro: estadoDocumento
         };
         await axios({
@@ -350,6 +351,7 @@ const prestamo = () => {
         setPrestamos(nuevosPrestamos);
         setEstadoDocumento('');
         handleGetDevoluciones();
+        handleGetUsers();
         handleGetPrestamos();
         swal({
             title: "devolucion con exito!",
@@ -408,7 +410,7 @@ const prestamo = () => {
         }
     };
     const confirmarQuitarSancion = async () => {
-        console.log('pe', selectedUser)
+
         try {
             await axios.post("http://localhost:8000/api/sancion_historial", {
                 ...quitarData,
@@ -421,6 +423,7 @@ const prestamo = () => {
                     `http://localhost:8000/api/documento/actualizarDoc/${selectedUser.prestamo.documento.id}`
                 );
             }
+            await axios.put(`http://localhost:8000/api/persona/baja/${selectedUser.persona.id}`, { estado: 1 });
             swal("✅ Sanción levantada con éxito", "", "success");
             getSanciones();
             handleGetUsers();
@@ -483,7 +486,7 @@ const prestamo = () => {
                 </div>
                 <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
                     <table className="table table-hover align-middle text-center">
-                        <thead className="table-primary sticky-top">
+                        <thead className="table-dark sticky-top">
                             <tr>
                                 <th>#</th>
                                 <th>Título</th>
@@ -543,32 +546,46 @@ const prestamo = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {prestamos.map((p, i) => p.estado === 1 && (
-                                <tr key={p.id}>
-                                    <td>{i + 1}</td>
-                                    <td>{p.persona?.nombre}</td>
-                                    <td>{p.fecha_prestamo?.slice(0, 10)}</td>
-                                    <td>{p.fecha_devolucion?.slice(0, 10)}</td>
-                                    <td>{p.documento?.titulo}</td>
-                                    <td className="d-flex justify-content-center gap-2">
-                                        <button
-                                            className="btn btn-outline-success btn-sm"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modalDevolucion"
-                                            onClick={() => hadlePrestamo(p)}>
-                                            Devolver
-                                        </button>
-                                        <button
-                                            className="btn btn-outline-warning btn-sm"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modalCrearSancionPrestamo"
-                                            onClick={() => setSelectedPrestamo(p)}>
-                                            Sancionar
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                            {prestamos.map((p, i) => {
+                                const fechaDevolucion = new Date(p.fecha_devolucion);
+                                const hoy = new Date();
+                                const vencido = fechaDevolucion < hoy && p.estado === 1;
+
+                                return (
+                                    p.estado === 1 && (
+                                        <tr key={p.id} className={vencido ? "table-danger" : ""}>
+                                            <td>{i + 1}</td>
+                                            <td>{p.persona?.nombre}</td>
+                                            <td>{p.fecha_prestamo?.slice(0, 10)}</td>
+                                            <td className={vencido ? "fw-bold text-danger" : ""}>
+                                                {p.fecha_devolucion?.slice(0, 10)}
+                                                {vencido && <i className="bi bi-exclamation-triangle-fill ms-2 text-danger"></i>}
+                                            </td>
+                                            <td>{p.documento?.titulo}</td>
+                                            <td className="d-flex justify-content-center gap-2">
+                                                <button
+                                                    className="btn btn-outline-success btn-sm"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalDevolucion"
+                                                    onClick={() => hadlePrestamo(p)}
+                                                >
+                                                    Devolver
+                                                </button>
+                                                <button
+                                                    className="btn btn-outline-warning btn-sm"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalCrearSancionPrestamo"
+                                                    onClick={() => setSelectedPrestamo(p)}
+                                                >
+                                                    Sancionar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )
+                                );
+                            })}
                         </tbody>
+
                     </table>
                 </div>
             </div>
@@ -586,7 +603,7 @@ const prestamo = () => {
                 </div>
                 <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
                     <table className="table table-hover text-center align-middle">
-                        <thead className="table-secondary sticky-top">
+                        <thead className="table-dark sticky-top">
                             <tr>
                                 <th>#</th>
                                 <th>Título</th>
@@ -597,30 +614,43 @@ const prestamo = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {reservas.map((r, i) => r.estado === 1 && (
-                                <tr key={r.id}>
-                                    <td>{i + 1}</td>
-                                    <td>{r.documento?.titulo}</td>
-                                    <td>{r.persona?.nombre}</td>
-                                    <td>{r.fecha_reserva?.slice(0, 10)}</td>
-                                    <td>{r.fecha_validez?.slice(0, 10)}</td>
-                                    <td className="d-flex justify-content-center gap-2">
-                                        <button
-                                            className="btn btn-outline-primary btn-sm"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modalPrestamoReservas"
-                                            onClick={() => sedHandleUsuario(r.documento)}>
-                                            Prestar
-                                        </button>
-                                        <button
-                                            className="btn btn-outline-danger btn-sm"
-                                            onClick={() => handleEliminarReserva(r.id)}>
-                                            Cancelar
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                            {reservas.map((r, i) => r.estado === 1 && (() => {
+                                const fechaValidez = new Date(r.fecha_validez);
+                                const hoy = new Date();
+                                const vencida = fechaValidez < hoy;
+
+                                return (
+                                    <tr key={r.id} className={vencida ? "table-danger" : ""}>
+                                        <td>{i + 1}</td>
+                                        <td>{r.documento?.titulo}</td>
+                                        <td>{r.persona?.nombre}</td>
+                                        <td>{r.fecha_reserva?.slice(0, 10)}</td>
+                                        <td className={vencida ? "fw-bold text-danger" : ""}>
+                                            {r.fecha_validez?.slice(0, 10)}
+                                            {vencida && <i className="bi bi-exclamation-triangle-fill ms-2 text-danger"></i>}
+                                        </td>
+                                        <td className="d-flex justify-content-center gap-2">
+                                            <button
+                                                className="btn btn-outline-primary btn-sm"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalPrestamoReservas"
+                                                onClick={() => sedHandleUsuario(r)}
+                                            >
+                                                Prestar
+                                            </button>
+                                            <button
+                                                className="btn btn-outline-danger btn-sm"
+                                                onClick={() => handleEliminarReserva(r.id)}
+                                            >
+                                                Cancelar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })())}
                         </tbody>
+
+
                     </table>
                 </div>
             </div>
@@ -629,7 +659,7 @@ const prestamo = () => {
             <div className="tab-pane fade" id="devolver" role="tabpanel">
                 <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
                     <table className="table table-striped text-center align-middle">
-                        <thead className="table-success sticky-top">
+                        <thead className="table-dark sticky-top">
                             <tr>
                                 <th>#</th>
                                 <th>Nombre</th>

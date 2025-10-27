@@ -33,7 +33,36 @@ const Entrada = () => {
   const [documentos, setDocumentos] = useState([]);
   const [areas, setAreas] = useState([]);
   const [carreras, setCarreras] = useState([]);
+  const [data, setData] = useState([]);
 
+  useEffect(() => {
+    const obtenerDatos = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/api/persona");
+        const estudiantes = res.data.data.personas;
+
+        // Contar estudiantes por carrera
+        const conteo = {};
+        estudiantes.forEach((est) => {
+          est.persona_carreras?.forEach((pc) => {
+            const carrera = pc.carrera?.nombre || "Sin carrera";
+            conteo[carrera] = (conteo[carrera] || 0) + 1;
+          });
+        });
+
+        // Convertir a arreglo para Recharts
+        const dataFormateada = Object.keys(conteo).map((nombreCarrera) => ({
+          carrera: nombreCarrera,
+          cantidad: conteo[nombreCarrera],
+        }));
+
+        setData(dataFormateada);
+      } catch (error) {
+        console.error("Error al obtener estudiantes:", error);
+      }
+    };
+    obtenerDatos();
+  }, []);
   useEffect(() => {
     handleGetSanciones();
     handleGetPrestamos();
@@ -90,9 +119,9 @@ const Entrada = () => {
     prestamos: prestamos.filter(p => p.persona?.persona_carreras[0]?.carrera?.id === carrera.id).length
   }));
   const tiposDocumento = [
-    { name: 'Libros', value: documentos.filter(d => d.tipo === 'Libro').length },
-    { name: 'Tesis', value: documentos.filter(d => d.tipo === 'Tesis').length },
-    { name: 'Proyectos', value: documentos.filter(d => d.tipo === 'Monografía').length },
+    { name: 'Libro', value: documentos.filter(d => d.tipo_doc.nombre === 'Libro').length },
+    { name: 'Tesis', value: documentos.filter(d => d.tipo_doc.nombre === 'Tesis').length },
+    { name: 'Proyecto', value: documentos.filter(d => d.tipo_doc.nombre === 'Proyecto').length },
   ];
 
   const COLORS = ['#007BFF', '#28A745', '#FFC107', '#6F42C1'];
@@ -117,27 +146,30 @@ const Entrada = () => {
         </div>
       </div>
       {/* <div className='dashboard-seccion'> */}
-        <div className='chart-container'>
-          <div className="graficos-container ">
-            <div className="grafico-box">
-              <h3>Préstamos por Carrera</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={prestamosPorCarrera}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="prestamos" fill="#007BFF" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+      <div className="chart-container">
+        <div className="graficos-container full-width">
+          <div className="grafico-box">
+            <h3>Préstamos por Carrera</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={prestamosPorCarrera}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="prestamos" fill="#007BFF" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
+      </div>
 
-        <div className='chart-container'>
-          <div className="grafico-box ">
-            <h3>Distribución de Documentos</h3>
-            <ResponsiveContainer width="100%" height={250}>
+
+      <div className="grafico-container">
+        <div className="chart-container">
+          {/* Gráfico circular */}
+          <div className="chart">
+            <h3 className='h3doc'>Distribución de Documentos</h3>
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={tiposDocumento}
@@ -157,8 +189,34 @@ const Entrada = () => {
               </PieChart>
             </ResponsiveContainer>
           </div>
+
+          {/* Gráfico de barras */}
+          <div className="chart">
+            <h3 className='h3doc'>Cantidad de estudiantes por carrera</h3>
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart
+                data={data}
+                margin={{ top: 20, right: 20, left: 30, bottom: 60 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="carrera"
+                  angle={-25}
+                  textAnchor="end"
+                  interval={0}
+                  height={80}
+                />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="cantidad" fill="#0d6efd" radius={[10, 10,   0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-     {/*  </div> */}
+      </div>
+
+      {/*  </div> */}
       <div className="panel-resumen">
         <FontAwesomeIcon icon={faChartBar} className="icono-resumen" />
         <div>

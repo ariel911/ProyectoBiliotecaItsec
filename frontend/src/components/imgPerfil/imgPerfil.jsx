@@ -9,8 +9,39 @@ const ImgPerfil = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [usuario, setUsuario] = useState(null);
   const [rol, setRol] = useState("");
+  const [modalEditar, setModalEditar] = useState(false);
+  const [formData, setFormData] = useState({
+    nombre: "",
+    correo: "",
+    clave: "",
+  });
+  useEffect(() => {
+    if (usuario) {
+      setFormData({
+        nombre: usuario.nombre || "",
+        correo: usuario.correo || "",
+        clave: "",
+      });
+    }
+  }, [usuario]);
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+  const handleGuardarCambios = async () => {
+    try {
+      const idUsuario = localStorage.getItem("id");
+      await axios.put(`http://localhost:8000/api/usuarios/${idUsuario}`, formData);
+      swal("¡Éxito!", "Datos actualizados correctamente", "success");
+      setModalEditar(false);
+    } catch (err) {
+      console.error("Error al actualizar los datos:", err);
+      swal("Error", "No se pudieron actualizar los datos", "error");
+    }
+  };
+
 
   // Obtener datos del usuario actual
+
   useEffect(() => {
     const idUsuario = localStorage.getItem("id");
 
@@ -19,20 +50,17 @@ const ImgPerfil = () => {
         try {
           const resUsuario = await axios.get(`http://localhost:8000/api/usuarios/${idUsuario}`);
           setUsuario(resUsuario.data.data || resUsuario.data);
-
           const resRol = await axios.get("http://localhost:8000/api/rol");
-         
-          console.log("r",resRol.data.data)  
+
           const rolUsuario = resRol.data.data.rol.find(r => r.id === resUsuario.data.data.rol.id);
           setRol(rolUsuario ? rolUsuario.nombre_rol : "Sin rol asignado");
         } catch (err) {
           console.error("Error al obtener los datos del usuario:", err);
         }
       };
-      fetchData();  
+      fetchData();
     }
   }, []);
-
   // Cerrar sesión
   const handleLogOut = () => {
     localStorage.removeItem("token");
@@ -41,7 +69,6 @@ const ImgPerfil = () => {
     localStorage.removeItem("Rol");
     navigate("/");
   };
-  
   return (
     <>
       <div className="elementoLink">
@@ -52,7 +79,39 @@ const ImgPerfil = () => {
           alt="Perfil"
         />
       </div>
-
+      {modalEditar && (
+        <div className="modalPerfilOverlay" onClick={() => setModalEditar(false)}>
+          <div className="modalPerfil" onClick={(e) => e.stopPropagation()}>
+            <h3>Editar datos</h3>
+            <input
+              type="text"
+              name="nombre"
+              value={formData.nombre}
+              onChange={handleChange}
+              placeholder="Nombre"
+              className="form-control mb-2"
+            />
+            <input
+              type="email"
+              name="correo"
+              value={formData.correo}
+              onChange={handleChange}
+              placeholder="Correo"
+              className="form-control mb-2"
+            />
+            <input
+              type="password"
+              name="clave"
+              value={formData.clave}
+              onChange={handleChange}
+              placeholder="Nueva contraseña (opcional)"
+              className="form-control mb-2"
+            />
+            <button className="modalBoton" onClick={handleGuardarCambios}>Guardar cambios</button>
+            <button className="modalBotonCerrar " onClick={() => setModalEditar(false)}>Cancelar</button>
+          </div>
+        </div>
+      )}
       {/* Modal de perfil */}
       {modalOpen && (
         <div className="modalPerfilOverlay" onClick={() => setModalOpen(false)}>
@@ -69,8 +128,7 @@ const ImgPerfil = () => {
             )}
 
             <div className="modalOpciones">
-              <button className="modalBoton">Editar datos</button>
-              <button className="modalBoton">Ver actividad reciente</button>
+              <button className="modalBoton" onClick={() => { setModalOpen(false); setModalEditar(true); }}>Editar datos</button>
               <button className="modalBotonCerrar" onClick={handleLogOut}>Cerrar sesión</button>
             </div>
 

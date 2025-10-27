@@ -61,7 +61,7 @@ const Sanciones = () => {
         descripcion: sancionData.descripcion,
         fecha_inicio: sancionData.fecha_inicio,
         fecha_fin: sancionData.fecha_fin,
-        estado: "1",
+        estado: 1,
       });
       swal("✅ Sanción registrada correctamente", "", "success");
       cargarDatos();
@@ -76,7 +76,7 @@ const Sanciones = () => {
     setQuitarData({
       motivo_levantamiento: "",
       fecha_levantamiento: new Date().toISOString().split("T")[0],
-      estado: "1",
+      estado: 1,
     });
     new window.bootstrap.Modal(
       document.getElementById("modalQuitarSancion")
@@ -91,6 +91,9 @@ const Sanciones = () => {
         personaId: selectedUser.persona.id,
         prestamoId: null,
       });
+
+      await axios.put(`http://localhost:8000/api/persona/baja/${selectedUser.persona.id}`, { estado: 1 });
+
       swal("✅ Sanción levantada con éxito", "", "success");
       cargarDatos();
     } catch (err) {
@@ -118,6 +121,7 @@ const Sanciones = () => {
   });
   // Filtrado sancionados (tabla "Sancionados")
   const sancionesFiltradas = sanciones.filter((s) => {
+
     const nombre = String(s.persona?.nombre || "").toLowerCase();
     const ci = String(s.persona?.ci ?? "").toLowerCase();
     const correo = String(s.persona?.correo || "").toLowerCase();
@@ -143,7 +147,7 @@ const Sanciones = () => {
 
   return (
     <div className="container py-4 sancion">
-      <h2 className="text-center mb-4 fw-bold">Gestión de Sanciones</h2>
+      <h2 className="text-center mb-4 fw-bold text-primary"> 👥Gestión de Sanciones</h2>
       {/* Tabs */}
       <ul className="nav nav-tabs" role="tablist">
         <li className="nav-item">
@@ -233,36 +237,45 @@ const Sanciones = () => {
                   <tr>
                     <th>#</th>
                     <th>Nombre</th>
+                    <th>CI</th>
                     <th>Sanción</th>
                     <th>Descripción</th>
-                    <th>CI</th>
-                    <th>Celular</th>
+                    <th>Vencimiento</th>
                     <th>Acción</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sancionesFiltradas
                     ?.filter((s) => s.estado == 1)
-                    .map((s, i) => (
-                      <tr key={s.id}>
-                        <td>{i + 1}</td>
-                        <td>{s.persona?.nombre}</td>
-                        <td>{s.tipo_sancion}</td>
-                        <td>{s.descripcion}</td>
-                        <td>{s.persona?.ci}</td>
-                        <td>{s.persona?.celular}</td>
-                        <td>
-                          <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() => abrirModalQuitar(s)}
-                          >
-                            <i className="bi bi-x-circle me-1"></i>
-                            Quitar sanción
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
+                    .map((s, i) => {
+                      const fechaFin = new Date(s.fecha_fin);
+                      const hoy = new Date();
+                      const vencida = fechaFin < hoy;
+
+                      return (
+                        <tr key={s.id} className={vencida ? "table-danger" : ""}>
+                          <td>{i + 1}</td>
+                          <td>{s.persona?.nombre}</td>
+                          <td>{s.persona?.ci}</td>
+                          <td>{s.tipo_sancion}</td>
+                          <td>{s.descripcion}</td>
+                          <td className={vencida ? "fw-bold text-danger" : ""}>
+                            {s.fecha_fin?.slice(0, 10)}
+                            {vencida && <i className="bi bi-exclamation-triangle-fill ms-2 text-danger"></i>}
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-sm btn-warning"
+                              onClick={() => abrirModalQuitar(s)}
+                            >
+                              <i className="bi bi-x-circle me-1"></i>
+                              Quitar sanción
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>  
               </table>
             </div>
           </div>

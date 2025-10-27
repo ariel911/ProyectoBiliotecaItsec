@@ -1,21 +1,21 @@
 .entrada-container {
     /* 🧭 Posicionamiento dentro del grid principal */
- 
+
     /* 🎨 Estilo visual */
     background: #f8f9fa;
-    border-radius: 16px;
-    padding: 40px 60px;
+    border-radius: 10px;
+    padding: 10px 10px;
     font-family: 'Poppins', sans-serif;
     text-align: center;
 
     /* 🌅 Espaciado interno y límites */
-    width: 95%;
+    width: 100%;
     height: 150%;
     box-sizing: border-box;
     margin: 10px;
     /* 🌈 Estética moderna */
-   /*  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); */
-    
+    /*  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); */
+
     /* ✅ Si el contenido crece, podrás hacer scroll */
     transition: all 0.3s ease;
 
@@ -39,17 +39,15 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
-   
+
 }
 
 /* 📊 Contenedor de gráficos */
+
 .chart-container {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
     width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 .chart-container:hover {
@@ -132,11 +130,29 @@
     gap: 30px;
 }
 
+.graficos-container.full-width {
+    width: 100%;
+}
+
+.grafico-box h3 {
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: #212529;
+}
+
+.h3doc {
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: #212529;
+}
+
 .grafico-box {
-    background: #fff;
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
 }
 
 .grafico-box h3 {
@@ -175,6 +191,34 @@
 .panel-resumen p {
     margin: 5px 0 0;
     color: #6c757d;
+}
+
+.grafico-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+    border-radius: 16px;
+    margin: 30px auto;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1200px;
+}
+
+.tituloGrafico {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #212529;
+}
+
+.chart {
+    flex: 1;
+    min-width: 400px;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 @media (max-width: 768px) {

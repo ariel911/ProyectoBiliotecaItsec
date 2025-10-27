@@ -110,9 +110,10 @@ const GestionBiblioteca = () => {
 
   return (
     <div className="container mt-4 gestion">
-      <h2 className="text-center mb-4 fw-bold">
-        <i className="bi bi-gear-fill text-primary me-2"></i>Gestión de Áreas y Autores
-      </h2>
+      
+      <h1 className="tituloProyecto text-center mb-4 fw-bold text-primary">
+       ⚙️ Gestión de Áreas y Autores
+      </h1>
 
       <ul className="nav nav-tabs justify-content" role="tablist">
         <li className="nav-item">
@@ -127,15 +128,15 @@ const GestionBiblioteca = () => {
         </li>
       </ul>
 
-      <div className="tab-content mt-4">
+      <div className="tab-content ">
         {/* ======== TAB ÁREAS ======== */}
         <div className="tab-pane fade show active" id="areas" role="tabpanel">
-          <div className="card shadow-lg border-0 rounded-3">
-            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <div className="card shadow-lg rounded-0">
+          {/*   <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
               <h5 className="mb-0"><i className="bi bi-diagram-3 me-2"></i>Gestión de Áreas</h5>
-            </div>
+            </div> */}
             <div className="card-body">
-              <form onSubmit={handleSubmitArea} className="mb-4">
+              <form onSubmit={handleSubmitArea} className="mb-2">
                 <div className="input-group">
                   <input
                     type="text"
@@ -236,12 +237,12 @@ const GestionBiblioteca = () => {
 
         {/* ======== TAB AUTORES ======== */}
         <div className="tab-pane fade" id="autores" role="tabpanel">
-          <div className="card shadow-lg border-0 rounded-3">
-            <div className="card-header bg-success text-white">
+          <div className="card shadow-lg border-0 rounded-0">
+         {/*    <div className="card-header bg-success text-white">
               <h5 className="mb-0"><i className="bi bi-person-lines-fill me-2"></i>Gestión de Autores</h5>
-            </div>
+            </div> */}
             <div className="card-body">
-              <form onSubmit={handleSubmitAutor} className="mb-4">
+              <form onSubmit={handleSubmitAutor} className="mb-2">
                 <div className="input-group">
                   <input
                     type="text"

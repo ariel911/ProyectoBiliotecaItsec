@@ -1,419 +1,351 @@
-import axios from 'axios';
-import './PaginaLibros.css'
-
-import imagenCircular from '../../assets/imgCirular.webp'
-import React, { useState, useEffect } from 'react';
-import lunr from 'lunr';
-
-
+import React, { useState, useEffect, useMemo } from "react";
+import axios from "axios";
+import swal from "sweetalert";
+import lunr from "lunr";
+import "./PaginaLibros.css";
 import logo from "../../assets/logo2.png";
+import imagenCircular from "../../assets/imgCirular.webp";
 
 const PaginaLibros = () => {
-    const [searchText, setSearchText] = useState('');
-    const [searchResults, setSearchResults] = useState([]); // Almacena los resultados de la búsqueda
     const [documentos, setDocumentos] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedDocumento2, setSelectedDocumento2] = useState(null);
-    const [show, setShow] = useState(false); // Estado para controlar la visibilidad del modal
     const [selectedDocumento, setSelectedDocumento] = useState(null);
+    const [modalType, setModalType] = useState(null); // "detalle" o "reserva"
+    const [fecha_reserva, setFecha_reserva] = useState("");
+    const [fecha_validez, setFecha_validez] = useState("");
 
-    const [fecha_reserva, setFecha_reserva] = useState(null);
-    const [fecha_validez, setFecha_validez] = useState(null);
-    const nombrePersona = localStorage.getItem('nombrePersona');
-    const personaId = localStorage.getItem('idPersona');
+    const nombrePersona = localStorage.getItem("nombrePersona");
+    const personaId = localStorage.getItem("idPersona");
+
     useEffect(() => {
-        handleGetDocuments();
+        fetchDocumentos();
         const getCurrentDateTime = (daysToAdd = 0) => {
             const now = new Date();
-            now.setDate(now.getDate() + daysToAdd); // Agregar los días necesarios
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            return `${year}-${month}-${day}T${hours}:${minutes}`;
+            now.setDate(now.getDate() + daysToAdd);
+            return now.toISOString().slice(0, 16);
         };
-        // Establece la fecha actual en `fecha_reserva`
         setFecha_reserva(getCurrentDateTime());
-
-        // Establece la fecha de validez un día después en `fecha_validez`
         setFecha_validez(getCurrentDateTime(1));
     }, []);
-    const handleGetDocuments = async () => {
-        const res = await axios.get('http://localhost:8000/api/documento',
-            {
-                /* headers: {
-                  Authorization: `Bearer ${token}`
-                } */
-            }
-        );
 
-        setDocumentos(res.data.data.documentos);
-        setSearchResults(res.data.data.documentos)
+    const fetchDocumentos = async () => {
+        try {
+            const { data } = await axios.get("http://localhost:8000/api/documento");
+            setDocumentos(data.data.documentos);
+        } catch (error) {
+            console.error("Error al obtener documentos:", error);
+        }
     };
-    console.log('doc:',documentos)
-    var idx = lunr(function () {
-        this.field('id')
-        this.field('title')
-        this.field('descripcion')
-        this.field('autores')
-        this.field('tipo_doc')
-        this.field('area')
-        this.field('formato')
-        this.field('carrera')
 
+    // 🧠 Índice de búsqueda con lunr (solo se recalcula si cambian los documentos)
+    const searchIndex = useMemo(() => {
+        if (documentos.length === 0) return null;
+        return lunr(function () {
+            this.ref("id");
+            this.field("titulo");
+            this.field("descripcion");
+            this.field("autor");
+            this.field("tipo_doc");
+            this.field("area");
 
-        documentos?.map((document, ind) =>
-            this.add({
-                "id": document.id,
-                "title": document?.titulo,
-                "descripcion": document?.descripcion,
-                "autores": document?.documento_autors[0]?.autor?.nombre,
-                "tipo_doc": document?.tipo_doc?.nombre,
-                "area": document?.area?.nombre,
-                "formato": document?.formato?.nombre,
-                "carrera": document?.carrera?.nombre,
-            })
-        );
-    })
+            documentos.forEach((doc) => {
+                this.add({
+                    id: doc.id,
+                    titulo: doc.titulo || "",
+                    descripcion: doc.descripcion || "",
+                    autor: doc.documento_autors?.[0]?.autor?.nombre || "",
+                    tipo_doc: doc.tipo_doc?.nombre || "",
+                    area: doc.area?.nombre || "",
+                    formato: doc.formato?.nombre || "",
+                    carrera: doc.carrera?.nombre || "",
+                });
+            });
+        });
+    }, [documentos]);
 
-
-    const encontrado = [];
-
-    const handleReserva = async () => {
+    // 🔍 Búsqueda en tiempo real con coincidencias parciales
+    const filteredResults = useMemo(() => {
+        if (!searchTerm.trim() || !searchIndex) return documentos;
 
         try {
-            if (selectedDocumento2.cantidad > 0) {
+            // Permite coincidencias parciales al escribir
+            const query = `*${searchTerm.toLowerCase()}*`;
+            const results = searchIndex.search(query);
 
-                // Send the lending request to the server
-                await axios({
-                    url: 'http://localhost:8000/reservas/reserva',
-                    method: 'POST',
-
-                    data: {
-                        fecha_reserva: fecha_reserva,
-                        fecha_validez: fecha_validez,
-                        estado: 1,
-                        personaId: personaId,
-                        documentoId: selectedDocumento2.id,
-                    }
-                });
-                setFecha_reserva(null)
-                setFecha_validez(null)
-                setShow(false);
-
-                swal({
-                    title: "Documento reservado con Exito!",
-                    icon: "success",
-                    button: "Ok",
-                });
-            } else {
-                swal({
-                    title: "Ya no se tiene Ejemplares!",
-                    text: "La cantidad de ejemplares que se tiene es 0",
-                    icon: "error",
-                    button: "Ok",
-                });
-            }
+            return results
+                .map((r) => documentos.find((d) => d.id === parseInt(r.ref)))
+                .filter(Boolean);
         } catch (error) {
-
-            console.error(error);
-            swal({
-                title: "Error al reservar Documento!",
-                icon: "error",
-                button: "Ok",
-            });
+            // Si el término no es válido, se muestra todo
+            return documentos;
         }
-    };
+    }, [searchTerm, documentos, searchIndex]);
 
+    // 📚 Filtrar por tipo de documento 
+    const filtrarPorTipo = (tipo) =>
+        filteredResults.filter((doc) => doc.tipo_doc?.nombre === tipo);
 
-    const handleChange = (event) => {
-        const text = event.target.value;
-        setSearchText(text);
-
-        // Realiza la búsqueda en función del texto ingresado (puedes usar una función de búsqueda o llamar a una API aquí)
-        // Por ahora, simplemente vamos a simular algunos resultados de búsqueda
-        const results = simulateSearch(text);
-
-        setSearchResults(results);
-    };
-    const handleLogOut = () => {
-        localStorage.removeItem("datos1");
-    }
-    // Función de simulación de búsqueda (puedes reemplazarla con tu lógica de búsqueda real)
-    const simulateSearch = (text) => {
-        // Simulación de búsqueda en base al texto ingresado
-        const aqui = idx.search(text)
-        for (let clave of aqui) {
-            const objetoEncontrado = documentos.find(objeto => objeto.id == clave.ref);
-            if (objetoEncontrado) {
-                encontrado.push(objetoEncontrado);
+    const handleReserva = async () => {
+        try {
+            if (selectedDocumento.cantidad <= 0) {
+                swal("Ya no hay ejemplares disponibles", "", "error");
+                return;
             }
+
+            await axios.post("http://localhost:8000/reservas/reserva", {
+                fecha_reserva,
+                fecha_validez,
+                estado: 1,
+                personaId,
+                documentoId: selectedDocumento.id,
+            });
+
+            swal("¡Reserva exitosa!", "Tu documento ha sido reservado.", "success");
+            setModalType(null);
+        } catch (error) {
+            console.error(error);
+            swal("Error al reservar el documento", "", "error");
         }
-        return encontrado;
     };
-    const filteredResults = searchResults.filter(documento =>
-        documento.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        documento?.documento_autors[0]?.autor?.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        documento?.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        documento?.carrera?.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        documento?.area?.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    const handleShow = (documento) => {
-        setSelectedDocumento(documento);
-        /*       setSelectedDocumento2(documento); */
-        setShow(true);
-    };
-    const handleShow2 = (documento) => {
-        setSelectedDocumento2(documento);
-        /*       setSelectedDocumento2(documento); */
-        setShow(true);
-    };
-    // Función para cerrar el modal
-    const handleClose = () => {
-        setShow(false);
-        setSelectedDocumento(null); // Limpiar el documento seleccionado
-        /*         setSelectedDocumento2(null); // Limpiar el documento seleccionado */
-    };
-    return (
-        <div className='contenedor3'>
-            <nav className='nav2'>
-                <img src={logo} className='logo7' />
-                <div>
-                    <div className='elementoLink'>
-                        <div  >
-                            <img src={imagenCircular} className='imagenCircular4' alt='hi' />
+
+    const Modal = () => {
+        if (!selectedDocumento || !modalType) return null;
+
+        return (
+            <div className="modal fade show" style={{ display: "block" }}>
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">
+                                {modalType === "detalle"
+                                    ? selectedDocumento.titulo
+                                    : `Reservar: ${selectedDocumento.titulo}`}
+                            </h5>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setModalType(null)}
+                            ></button>
                         </div>
-                        <div className='flex'>
-                            <ul className={`submenuPerfil `} id="subMenu">
-                                <li className='perfilLink' >
-                                    <a type='submit' className='buttonLogout'>Configuracion</a>
-                                </li>
-                                <li className='perfilLink'>
-                                    <a type='button' href='/ac' className='buttonLogout' >Cerrar Sesion</a>
-                                </li>
-                            </ul>
+
+                        <div className="modal-body">
+                            {modalType === "detalle" ? (
+                                <>
+                                    <p>
+                                        <strong>Descripción:</strong>{" "}
+                                        {selectedDocumento.descripcion || "Sin descripción"}
+                                    </p>
+                                    <p>
+                                        <strong>Autor(es):</strong>{" "}
+                                        {selectedDocumento.documento_autors
+                                            .map((a) => a.autor?.nombre)
+                                            .join(", ")}
+                                    </p>
+                                    <p>
+                                        <strong>Carrera:</strong>{" "}
+                                        {selectedDocumento.carrera?.nombre || "N/A"}
+                                    </p>
+                                    <p>
+                                        <strong>Cantidad:</strong> {selectedDocumento.cantidad}
+                                    </p>
+                                </>
+                            ) : (
+                                <form>
+                                    <div className="mb-3">
+                                        <label>Nombre</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            value={nombrePersona}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label>Cantidad Disponible</label>
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            value={selectedDocumento.cantidad}
+                                            disabled
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label>Fecha de reserva</label>
+                                        <input
+                                            type="datetime-local"
+                                            className="form-control"
+                                            value={fecha_reserva}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label>Validez de reserva</label>
+                                        <input
+                                            type="datetime-local"
+                                            className="form-control"
+                                            value={fecha_validez}
+                                            readOnly
+                                        />
+                                    </div>
+                                </form>
+                            )}
+                        </div>
+
+                        <div className="modal-footer">
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setModalType(null)}
+                            >
+                                Cerrar
+                            </button>
+                            {modalType === "reserva" && (
+                                <button className="btn btn-primary" onClick={handleReserva}>
+                                    Confirmar Reserva
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
-            </nav>
-            <div className="buscaPagina">
-                <h1 className='tituloLi'>Documentos de la Biblioteca</h1>
-                <ul className="nav nav-tabs" role="tablist">
-                    <li className="nav-item">
-                        <a className="nav-link active" data-bs-toggle="tab" href="#libros" role="tab">Libros</a>
-                    </li>
-                    <li className="nav-item">
-                        <a className="nav-link" data-bs-toggle="tab" href="#proyectos" role="tab">Proyectos de grado</a>
-                    </li>
-                    <li className="nav-item">
-                        <a className="nav-link" data-bs-toggle="tab" href="#Documento Academico" role="tab">Documento Academico</a>
-                    </li>
-                    <li className="nav-item">
-                        <a className="nav-link" data-bs-toggle="tab" href="#otros" role="tab">Otros</a>
-                    </li>
-                </ul>
+            </div>
+        );
+    };
 
-                <input type="text" className="form-control BuscarPaginaLibros " placeholder="Buscar por título, autor o área..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-
-                <div className='tab-content'>
-                    <div className="busca5 tab-pane fade show active " role="tabpanel" id='libros'>
-                        {/* Cuadro de scroll para las tarjetas */}
-                        <div className="d-flex  flex-wrap  librosTarjetas" style={{ overflowY: 'scroll' }} >
-                            {filteredResults.map((documento) => documento.tipo_doc.nombre == 'Libro' && (
-                                <div className="card mb-3 " key={documento.id} style={{ height: '400px', width: '240px', margin: '10px' }}>
-                                    {/* Imagen del documento */}
-                                    <div style={{ height: '280px', width: '237.5px'  }} >
-                                        <img
-                                            src={documento.imagen} // Aquí utilizamos la ruta del documento
-                                            alt={documento.titulo}
-                                            style={{ height: '280px', width: '100%', objectFit: 'fill' ,margin:'auto'}} // Ajuste del tamaño de la imagen
-                                            className="card-img-top"
-                                        />
-                                    </div>
-                                    <div className="card-body d-flex justify-content-around flex-column">
-                                        <h5 className="card-title">{documento.titulo}</h5>
-                                        {/* Botones de Reservar y Ver detalles */}
-                                        <div className="d-flex justify-content-between">
-                                            <button className="btn btn-primary" onClick={() => handleShow2(documento)}>
-                                                Reservar
-                                            </button>
-                                            <button className="btn btn-secondary" onClick={() => handleShow(documento)}>
-                                                Ver detalles
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    {/* Documento Academico */}
-                    <div className="busca5 tab-pane fade " role="tabpanel" id='proyectos'>
-                        <div className="d-flex flex-wrap librosTarjetas" style={{ overflowY: 'scroll' }} >
-                            {filteredResults.map((documento) => documento.tipo_doc.nombre == 'Documento Academico' && (
-                                <div className="card mb-3" key={documento.id} style={{ height: '400px', width: '240px', margin: '10px' }}>
-                                    {/* Imagen del documento */}
-                                    <div style={{ height: '280px', width: '237.5px' }} >
-                                        <img
-                                            src={documento.imagen} // Aquí utilizamos la ruta del documento
-                                            alt={documento.titulo}
-                                            style={{ height: '280px', width: '100%', objectFit: 'fill' }} // Ajuste del tamaño de la imagen
-                                            className="card-img-top"
-                                        />
-                                    </div>
-                                    <div className="card-body d-flex justify-content-around flex-column">
-                                        <h5 className="card-title">{documento.titulo}</h5>
-                                        {/* Botones de Reservar y Ver detalles */}
-                                        <div className="d-flex justify-content-between">
-                                            <button className="btn btn-primary" onClick={() => handleShow2(documento)}>
-                                                Reservar
-                                            </button>
-                                            <button className="btn btn-secondary" onClick={() => handleShow(documento)}>
-                                                Ver detalles
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="busca5 tab-pane fade" role="tabpanel" id='Documento Academico'>
-                        <div className="d-flex flex-wrap  librosTarjetas" style={{ overflowY: 'scroll' }} >
-                            {filteredResults.map((documento) => documento.tipo_doc.nombre == 'documento academico' && (
-                                <div className="card mb-3" key={documento.id} style={{ height: '400px', width: '250px', margin: '10px' }}>
-                                    {/* Imagen del documento */}
-                                    <img
-                                        src={documento.imagen} // Aquí utilizamos la ruta del documento
-                                        alt={documento.titulo}
-                                        style={{ height: '300px', objectFit: 'cover', width: '100%' }} // Ajuste del tamaño de la imagen
-                                        className="card-img-top"
-                                    />
-                                    <div className="card-body">
-                                        <h5 className="card-title">{documento.titulo}</h5>
-                                        {/* Botones de Reservar y Ver detalles */}
-                                        <div className="d-flex justify-content-between">
-                                            <button className="btn btn-primary" onClick={() => handleShow2(documento)}>
-                                                Reservar
-                                            </button>
-                                            <button className="btn btn-secondary" onClick={() => handleShow(documento)}>
-                                                Ver detalles
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    {/* Modal para mostrar detalles */}
-                    {selectedDocumento && (
-                        <div
-                            className={`modal fade ${show ? 'show' : ''}`}
-                            tabIndex="-1"
-                            role="dialog"
-                            style={{ display: show ? 'block' : 'none', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-                        >
-                            <div className="modal-dialog modal-dialog-centered" role="document">
-                                <div className="modal-content">
-                                    <div className="modal-header">
-                                        <h5 className="modal-title">{selectedDocumento.titulo}</h5>
-                                        <button
-                                            type="button"
-                                            className="close"
-                                            onClick={handleClose} // No necesitas usar `this` aquí
-                                            aria-label="Close"
-                                        >
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div className="modal-body">
-                                        <p>
-                                            <strong>Formato:</strong> {selectedDocumento?.titulo}
-
-                                        </p>
-                                        <p>
-                                            <strong>Formato:</strong> {selectedDocumento?.descripcion}
-
-                                        </p>
-                                        <p>
-                                            <strong>Autor(es):</strong>{' '}
-                                            {selectedDocumento.documento_autors
-                                                .map((autor) => autor.autor.nombre)
-                                                .join(', ')}
-                                        </p>
-                                        <p>
-                                            <strong>Formato:</strong> {selectedDocumento?.formato?.nombre}
-
-                                        </p>
-                                        <p>
-                                            <strong>Cantidad:</strong> {selectedDocumento?.cantidad}
-
-                                        </p>
-                                    </div>
-                                    <div className="modal-footer">
-                                        <button
-                                            type="button"
-                                            className="btn btn-secondary"
-                                            onClick={handleClose} // No necesitas usar `this` aquí
-                                        >
-                                            Cerrar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {/* Modal para mostrar el formulario de reserva */}
-                    {selectedDocumento2 && (
-                        <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
-                            <div className="modal-dialog">
-                                <div className="modal-content">
-                                    <div className="modal-header">
-                                        <h5 className="modal-title">Reservar: {selectedDocumento2.titulo}</h5>
-                                        <button
-                                            type="button"
-                                            className="close"
-                                            onClick={() => setSelectedDocumento2(null)}
-                                        >
-                                            <span>&times;</span>
-                                        </button>
-                                    </div>
-                                    <div className="modal-body">
-                                        <form>
-                                            <div className="form-group">
-                                                <label>Nombre</label>
-                                                <input type="text" className="form-control" value={nombrePersona} />
-                                            </div>
-                                            <div className="form-group">
-                                                <label>Fecha de reserva</label>
-                                                <input type="datetime-local" className="form-control" value={fecha_reserva?.slice(0, 16)} />
-                                            </div>
-                                            <div className="form-group">
-                                                <label>fecha validez</label>
-                                                <input type="datetime-local" className="form-control" value={fecha_validez?.slice(0, 16)}></input>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div className="modal-footer">
-                                        <button
-                                            type="button"
-                                            className="btn btn-secondary"
-                                            onClick={() => setSelectedDocumento2(null)}
-                                        >
-                                            Cerrar
-                                        </button>
-                                        <button type="submit" className="btn btn-primary" onClick={handleReserva}>Confirmar Reserva</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-
+    const TarjetaDocumento = ({ documento }) => (
+        <div className="card m-2" style={{ width: "240px", height: "400px" }}>
+            <img
+                src={documento.imagen}
+                alt={documento.titulo}
+                style={{ height: "280px", width: "100%", objectFit: "cover" }}
+            />
+            <div className="card-body d-flex flex-column justify-content-between">
+                <h6 className="card-title text-center">{documento.titulo}</h6>
+                <div className="d-flex justify-content-between">
+                    <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => {
+                            setSelectedDocumento(documento);
+                            setModalType("reserva");
+                        }}
+                    >
+                        Reservar
+                    </button>
+                    <button
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={() => {
+                            setSelectedDocumento(documento);
+                            setModalType("detalle");
+                        }}
+                    >
+                        Detalles
+                    </button>
                 </div>
             </div>
         </div>
+    );
 
-    )
-}
+    return (
+        <div className="contenedor3">
+            {/* NAV SUPERIOR */}
+            <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm px-4">
+                <div className="container-fluid">
+                    <div className="d-flex align-items-center">
+                        <img src={logo} className="logo7 me-2" alt="logo" height="45" />
+                        <h4 className="text-white mb-0">Biblioteca ITSEC</h4>
+                    </div>
 
-export default PaginaLibros
+                    <div className="dropdown">
+                        <img
+                            src={imagenCircular}
+                            className="rounded-circle"
+                            alt="perfil"
+                            width="45"
+                            height="45"
+                            data-bs-toggle="dropdown"
+                            role="button"
+                        />
+                        <ul className="dropdown-menu dropdown-menu-end shadow">
+                            <li>
+                                <a href="/config" className="dropdown-item">
+                                    ⚙️ Configuración
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/ac" className="dropdown-item text-danger">
+                                    🔒 Cerrar sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            {/* CONTENIDO PRINCIPAL */}
+            <div className="container my-4">
+                <h2 className="text-center fw-bold mb-4 tituloLi">
+                    Documentos de la Biblioteca
+                </h2>
+
+                {/* PESTAÑAS */}
+                <ul className="nav nav-tabs justify-content-center" id="docTabs">
+                    <li className="nav-item">
+                        <a
+                            className="nav-link active"
+                            data-bs-toggle="tab"
+                            href="#libros"
+                        >
+                            📚 Libros
+                        </a>
+                    </li>
+                    <li className="nav-item">
+                        <a className="nav-link" data-bs-toggle="tab" href="#proyectos">
+                            🎓 Documentos Académicos
+                        </a>
+                    </li>
+
+                </ul>
+
+                {/* BARRA DE BÚSQUEDA */}
+                <div className="mt-3 mb-4">
+                    <input
+                        type="text"
+                        className="form-control form-control-lg shadow-sm"
+                        placeholder="🔍 Buscar por título, autor o área..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+
+                {/* CONTENIDO DE LAS PESTAÑAS */}
+                <div className="tab-content mt-4">
+                    {/* Libros */}
+                    <div className="tab-pane fade show active" id="libros">
+                        <div className="row g-4">
+                            {filtrarPorTipo("Libro").map((doc) => (
+                                <div key={doc.id} className="col-md-4 col-lg-3">
+                                    <TarjetaDocumento documento={doc} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Proyectos de grado */}
+                    <div className="tab-pane fade" id="proyectos">
+                        <div className="row g-4">
+                            {filtrarPorTipo("Proyecto")
+                                .concat(filtrarPorTipo("Tesis"))
+                                .map((doc) => (
+                                    <div key={doc.id} className="col-md-4 col-lg-3">
+                                        <TarjetaDocumento documento={doc} />
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <Modal />
+        </div>
+    );
+};
+
+export default PaginaLibros;

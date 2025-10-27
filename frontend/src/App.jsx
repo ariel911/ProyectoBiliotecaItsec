@@ -2,11 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useState } from 'react';
 import Home from './pages/home/Home';
 import Entrada from './components/Entrada/Entrada';
-import Rol from './components/Usuario/rol';
+
 import Estudiante from './components/Estudiante/estudiante';
-import Carrera from './components/Documento/carrera'
-import Formato from './components/Documento/formato'
-import Area from './components/Documento/area'
 import Sancion from './components/Usuario/sanciones'
 import Usuario from './components/Usuario/usuario'
 import Documento from './components/Documento/documento'
@@ -14,7 +11,7 @@ import Reportes from './components/reportes/reportes'
 import Libro from './components/Documento/libro'
 import Prestamo from './components/Prestamo/prestamo'
 import Autor from './components/autor/autor'
-import Tipo from './components/Documento/tipo_doc'
+
 import Estadisticas from './components/estadisticas/estadisticas'
 import PaginaLibros from './pages/PaginaLibros/PaginaLibros'
 import LoginBiblio from './pages/PaginaLibros/loginLibros'
@@ -47,11 +44,7 @@ const App = () => {
           <Route element={<ProtectedRoutes />}>
             <Route path="/homeInicio" element={<Home />}>
               <Route path={HOME_INICIO} index element={<Entrada /> } />
-              <Route path={HOME_ROL} element={<Rol />} />
               <Route path={HOME_ESTUDIANTE} element={<Estudiante />} />
-              <Route path={HOME_CARRERA} element={<Carrera />} />
-              <Route path={HOME_FORMATO} element={<Formato />} />
-              <Route path={HOME_AREA} element={<Area />} />
               <Route path={HOME_AUTOR} element={<Autor />} />
               <Route path={HOME_SANCION} element={<Sancion />} />
               <Route path={HOME_USUARIO} element={<Usuario />} />
@@ -59,8 +52,7 @@ const App = () => {
               <Route path={HOME_LIBRO} element={<Libro />} />
               <Route path={HOME_PRESTAMO} element={<Prestamo />} />
               <Route path={HOME_ESTADISTICAS} element={<Estadisticas />} />
-              <Route path={HOME_REPORTES} element={<Reportes /> } />
-              <Route path={HOME_TIPO} element={<Tipo />} />
+              <Route path={HOME_REPORTES} element={<Reportes /> } />        
               <Route path={HOME_BACKUP} element={<Backup /> } />
               <Route path={HOME_RECUPERACION} element={<Recuperacion />} />
             </Route>

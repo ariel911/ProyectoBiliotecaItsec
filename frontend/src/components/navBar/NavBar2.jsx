@@ -5,13 +5,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
     faFileArrowDown, faUsers, faFolder, faBook,
     faAngleDown, faGlobe, faClose, faClipboard,
-    faHouse
+    faHouse,
+    faUser
 } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import {
-    LOGIN_BIBLIOTECA, HOME_REPORTES, HOME_ROL, HOME_AUTOR, HOME_ESTUDIANTE,
+    LOGIN_BIBLIOTECA, HOME_REPORTES, HOME_AUTOR, HOME_ESTUDIANTE,
     HOME_SANCION, HOME_USUARIO, HOME_DOCUMENTO, HOME_LIBRO, HOME_PRESTAMO,
-    HOME_BACKUP, HOME_RECUPERACION
+    HOME_BACKUP,
 } from '../../routes/path';
 
 const NavBar = () => {
@@ -69,25 +70,9 @@ const NavBar = () => {
                         )}
                         {(menuPermissions.includes('Usuarios') || menuPermissions.includes('Cargos') || menuPermissions.includes('Todo')) && (
                             <li className="nav-item">
-                                <div
-                                    className="nav-link d-flex justify-content-between align-items-center"
-                                    onClick={() => toggleSubmenu('usuarios')}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <span>
-                                        <FontAwesomeIcon icon={faUsers} className="me-2" />
-                                        Usuarios
-                                    </span>
-                                    <FontAwesomeIcon icon={faAngleDown} />
-                                </div>
-                                <ul className={`submenu list-unstyled ps-4 ${openSubmenu === 'usuarios' ? 'show' : ''}`}>
-                                    {(menuPermissions.includes('Todo') || menuPermissions.includes('Cargos')) && (
-                                        <li><Link className="dropdown-item" to={HOME_ROL}>Cargos</Link></li>
-                                    )}
-                                    {(menuPermissions.includes('Todo') || menuPermissions.includes('Usuarios')) && (
-                                        <li><Link className="dropdown-item" to={HOME_USUARIO}>Usuarios</Link></li>
-                                    )}
-                                </ul>
+                                <Link className="nav-link" to={HOME_USUARIO}>
+                                    <FontAwesomeIcon icon={faUser} className="me-2" /> Usuarios
+                                </Link>
                             </li>
                         )}
 

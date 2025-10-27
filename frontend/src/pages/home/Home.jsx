@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import NavBar2 from '../../components/navBar/NavBar2';
+import Notificacion from '../../components/notificaciones/notificacion';
 import ImgPerfil from '../../components/imgPerfil/imgPerfil';
 import './Home.css';
 import logo from "../../assets/logo2.png";
@@ -24,12 +25,14 @@ const Home = () => {
           </button>
           <img src={logo} alt="Logo Biblioteca" className="logo" />
         </div>
-
         <div className="d-flex align-items-center perfil-container">
+          <div className='NotiPrestamos'>
+            <Notificacion />
+          </div>
           <ImgPerfil />
           <div className="nombres">
-            <p className="span1">{nombre}</p>
-            <p className="span2">{rol}</p>
+            <p className="span1">{rol}</p>
+            <p className="span2 ">{nombre}</p>
           </div>
         </div>
       </div>

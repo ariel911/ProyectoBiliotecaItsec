@@ -18,16 +18,12 @@ const documento = () => {
     const [ubicacion, setUbicacion] = useState('');
     const [codigo, setCodigo] = useState('');
     const [fechaRegistro, setFechaRegistro] = useState('');
-
-
     const [selectedOption, setSelectedOption] = useState('');
     //const [autores, setAutores] = useState('');
     //buscador
     const [searchText, setSearchText] = useState('');
     const [searchResults, setSearchResults] = useState([]); // Almacena los resultados de la búsqueda
-
     const [searchTerm, setSearchTerm] = useState('');
-    const [formatos, setFormatos] = useState([]);
     const [areas, setAreas] = useState([]);
     const [todosAutores, setTodosAutores] = useState([]);
     const [tiposDocumento, setTiposDocumento] = useState([]);
@@ -51,9 +47,7 @@ const documento = () => {
             document.getElementById('ubicacion2').value = selecteDocument?.ubicacion || '';
             document.getElementById('codigo2').value = selecteDocument?.codigo || '';
             document.getElementById('cantidad2').value = selecteDocument?.cantidad || '';
-            /*   document.getElementById('tipodoc2').value = selecteDocument?.tipo_doc?.id || null; */
-            /*          document.getElementById('format2').value = selecteDocument?.formato?.id || null; */
-            document.getElementById('are2').value = selecteDocument?.area?.id || null;
+   /*          document.getElementById('are2').value = selecteDocument?.area?.id || null; */
         }
         handleGetDocuments();
 
@@ -64,7 +58,7 @@ const documento = () => {
         handleGetDocuments();
         fetchTiposDocumento();
         getCarreras();
-        getFormatos();
+
         getArea();
         getAutores();
 
@@ -125,7 +119,7 @@ const documento = () => {
                 ubicacion: document.getElementById('ubicacion2').value,
                 Codigo: document.getElementById('codigo2').value,
                 estado: 1,
-                areaId: document.getElementById('are2').value,
+              /*   areaId: document.getElementById('are2').value, */
             },
         }).then((response) => {
             // Accede a la respuesta de la API
@@ -216,12 +210,7 @@ const documento = () => {
 
         setCarreras(res.data.data.carrera);
     };
-    const getFormatos = async () => {
-        const res = await axios.get('http://localhost:8000/api/formato',
-        );
 
-        setFormatos(res.data.data.formato);
-    };
     const getArea = async () => {
         const res = await axios.get('http://localhost:8000/api/area',
         );
@@ -254,7 +243,7 @@ const documento = () => {
         this.field('autores')
         this.field('tipo_doc')
         this.field('area')
-        this.field('formato')
+
         this.field('carrera')
 
 
@@ -266,7 +255,7 @@ const documento = () => {
                 "autores": document?.documento_autors[0]?.autor?.nombre,
                 "tipo_doc": document?.tipo_doc?.nombre,
                 "area": document?.area?.nombre,
-                "formato": document?.formato?.nombre,
+               
                 "carrera": document?.carrera?.nombre,
             })
         );
@@ -345,7 +334,7 @@ const documento = () => {
                             </div>
 
                             <div className="col-md-3">
-                                <label htmlFor="ubicacion" className="form-label fw-semibold">Ubicación</label>
+                                <label htmlFor="ubicacion" className="form-label fw-semibold">Ubicación Física</label>
                                 <input type="text" className="form-control" id="ubicacion" value={ubicacion} onChange={(e) => setUbicacion(e.target.value)} required />
                             </div>
 
@@ -366,26 +355,6 @@ const documento = () => {
                                 />
                             </div>
 
-                            <div className="col-md-2">
-                                <label htmlFor="cantidad" className="form-label fw-semibold">Cantidad</label>
-                                <input type="number" className="form-control" id="cantidad" value={cantidad} onChange={(e) => setCantidad(e.target.value)} required />
-                            </div>
-
-                            <div className="col-md-3">
-                                <label htmlFor="fechaRegistro" className="form-label fw-semibold">Fecha de registro</label>
-                                <input type="datetime-local" className="form-control" value={fechaRegistro} onChange={(e) => setFechaRegistro(e.target.value)} required />
-                            </div>
-
-                            <div className="col-md-3">
-                                <label htmlFor="carrera" className="form-label fw-semibold">Carrera</label>
-                                <select className="form-select" id="carrera" value={carr} onChange={(e) => setCarr(e.target.value)}>
-                                    <option value="" hidden>Seleccione Carrera</option>
-                                    {carreras.map((carrera) => (
-                                        <option key={carrera.id} value={carrera.id}>{carrera.nombre}</option>
-                                    ))}
-                                </select>
-                            </div>
-
                             <div className="col-md-3">
                                 <label htmlFor="tipodoc" className="form-label fw-semibold">Tipo documento</label>
                                 <select className="form-select" id="tipodoc" value={tipodoc} onChange={(e) => setTipodoc(e.target.value)}>
@@ -395,6 +364,26 @@ const documento = () => {
                                     ))}
                                 </select>
                             </div>
+                            <div className="col-md-2">
+                                <label htmlFor="cantidad" className="form-label fw-semibold">Cantidad</label>
+                                <input type="number" className="form-control" id="cantidad" value={cantidad} onChange={(e) => setCantidad(e.target.value)} required />
+                            </div>
+                            <div className="col-md-3">
+                                <label htmlFor="carrera" className="form-label fw-semibold">Carrera</label>
+                                <select className="form-select" id="carrera" value={carr} onChange={(e) => setCarr(e.target.value)}>
+                                    <option value="" hidden>Seleccione Carrera</option>
+                                    {carreras.map((carrera) => (
+                                        <option key={carrera.id} value={carrera.id}>{carrera.nombre}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-md-3">
+                                <label htmlFor="fechaRegistro" className="form-label fw-semibold">Fecha de registro</label>
+                                <input type="datetime-local" className="form-control" value={fechaRegistro} onChange={(e) => setFechaRegistro(e.target.value)} required />
+                            </div>
+
+
+
 
                             <div className="col-md-3">
                                 <label htmlFor="are" className="form-label fw-semibold">Área</label>
@@ -443,21 +432,22 @@ const documento = () => {
                                         <th>Cantidad</th>
                                         <th>Carrera</th>
                                         <th>Área</th>
-                                        <th>Formato</th>
+                                        
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {searchResults.map((documento, index) => (
-                                        documento.estado == 1 && documento.tipo_doc.nombre !== 'Libro' && (
+                                        (documento.estado == 1 && documento.tipo_doc.nombre !== 'Libro') && (
                                             <tr key={documento.id}>
                                                 <td>{index + 1}</td>
+                                             
                                                 <td>{documento.titulo}</td>
                                                 <td>{`${documento.documento_autors[0]?.autor?.nombre || ''}${documento.documento_autors[1] ? ', ' + documento.documento_autors[1]?.autor?.nombre : ''}`}</td>
                                                 <td>{documento.cantidad}</td>
                                                 <td>{documento?.carrera?.nombre}</td>
                                                 <td>{documento?.area?.nombre}</td>
-                                                <td>{documento?.formato?.nombre}</td>
+                                                
                                                 <td>
                                                     <button className="btn btn-sm btn-primary me-2" data-bs-toggle="modal" data-bs-target="#modalEditDocumento" onClick={() => handleEditDocument(documento)}>
                                                         <i className="bi bi-pencil-square"></i>
@@ -486,7 +476,7 @@ const documento = () => {
                                     <th>Autores</th>
                                     <th>Cantidad</th>
                                     <th>Área</th>
-                                    <th>Formato</th>
+                                  <th>Formato</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
@@ -499,7 +489,7 @@ const documento = () => {
                                             <td>{`${documento.documento_autors[0]?.autor?.nombre || ''}${documento.documento_autors[1] ? ', ' + documento.documento_autors[1]?.autor?.nombre : ''}`}</td>
                                             <td>{documento.cantidad}</td>
                                             <td>{documento?.area?.nombre}</td>
-                                            <td>{documento?.formato?.nombre}</td>
+                                      
                                             <td>
                                                 <button className="btn btn-success btn-sm" onClick={() => handleDarReintegrar(documento.id)}>
                                                     <i className="bi bi-arrow-clockwise me-1"></i>Reintegrar
@@ -545,7 +535,7 @@ const documento = () => {
                                         <input type="text" className="form-control" id="codigo2" defaultValue={selecteDocument?.codigo} required /> </div>
                                 </div> <div className='row '> <div className="mb-3 col"> <label htmlFor="ubicacion" className="form-label">Ubicacion</label>
                                     <input type="text" className="form-control" id="ubicacion2" defaultValue={selecteDocument?.ubicacion} required /> </div>
-                                   
+
                                 </div>
                                 <button type="submit" className="btn btn-primary booton" onClick={handleEdit} data-bs-dismiss="modal">Editar</button> </form>
                         </div>

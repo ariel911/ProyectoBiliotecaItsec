@@ -244,8 +244,8 @@ const Estudiante = ({ handleAddUser }) => {
 
   // ============================ RENDER ==============================
   return (
-    <div className="container mt-4 estudiante">
-      <h2 className="text-center mb-4 fw-bold">Gestión de Miembros</h2>
+    <div className="container mt-4 estudiante"> 
+      <h2 className="text-center mb-4 fw-bold text-primary"> 👥 Gestión de Miembros</h2>
 
       <ul className="nav nav-tabs" id="tabEstudiantes" role="tablist">
         <li className="nav-item" role="presentation">
@@ -405,7 +405,7 @@ const Estudiante = ({ handleAddUser }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {searchResults.map((est, i) => (
+                  {searchResults.map((est, i) => est.estado==1 && (
                     <tr key={est.id}>
                       <td>{i + 1}</td>
                       <td>{est.nombre}</td>

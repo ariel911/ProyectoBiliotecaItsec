@@ -26,7 +26,7 @@ export const HOME_ESTADISTICAS = 'home/estadisticas';
 export const HOME_TIPO = 'home/tipo_doc';
 export const HOME_AUTOR = 'home/autor';
 export const HOME_REPORTES = 'home/reportes';
-export const HOME_RESERVA = '/home/reservas';
+export const HOME_RESERVA = 'home/reservas';
 export const HOME_ITSEC = '/itsec';
 export const LOGIN_BIBLIOTECA = '/login_biblioteca';
 

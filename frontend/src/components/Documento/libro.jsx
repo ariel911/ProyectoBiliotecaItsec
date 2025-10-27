@@ -131,10 +131,10 @@ const libro = () => {
                     Codigo: codigo,
                     areaId: are,
                     carreraId: null,
-                    tipoDocId: 1,
+                    tipoDocId: 2,
                     autores: selectedOptionIds
                 },
-    
+
             ).then((response) => {
                 // Accede a la respuesta de la API
                 console.log("Respuesta de la API:", response.data);
@@ -204,7 +204,6 @@ const libro = () => {
         this.field('autores')
         this.field('tipo_doc')
         this.field('area')
-        this.field('formato')
         this.field('carrera')
 
 
@@ -216,7 +215,6 @@ const libro = () => {
                 "autores": document?.documento_autors[0]?.autor?.nombre,
                 "tipo_doc": document?.tipo_doc?.nombre,
                 "area": document?.area?.nombre,
-                "formato": document?.formato?.nombre,
                 "carrera": document?.carrera?.nombre,
             })
         );
@@ -371,19 +369,17 @@ const libro = () => {
                                         <th>Autor(es)</th>
                                         <th>Cantidad</th>
                                         <th>Área</th>
-                                        <th>Formato</th>
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {searchResults.map((documento, index) => (documento.estado === 1 && (
+                                    {searchResults.map((documento, index) => (documento.estado === 1 && documento.tipo_doc.nombre === 'Libro' && (
                                         <tr key={documento.id}>
                                             <td>{index + 1}</td>
                                             <td>{documento.titulo}</td>
                                             <td>{`${documento.documento_autors[0]?.autor?.nombre || ''}${documento.documento_autors[1] ? ', ' + documento.documento_autors[1]?.autor?.nombre : ''}`}</td>
                                             <td>{documento.cantidad}</td>
                                             <td>{documento?.area?.nombre}</td>
-                                            <td>{documento?.formato?.nombre}</td>
                                             <td>
                                                 <div className="btn-group">
                                                     <button
@@ -424,7 +420,6 @@ const libro = () => {
                                     <th>Autor(es)</th>
                                     <th>Cantidad</th>
                                     <th>Área</th>
-                                    <th>Formato</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
@@ -437,7 +432,6 @@ const libro = () => {
                                             <td>{`${documento.documento_autors[0]?.autor?.nombre || ''}${documento.documento_autors[1] ? ', ' + documento.documento_autors[1]?.autor?.nombre : ''}`}</td>
                                             <td>{documento.cantidad}</td>
                                             <td>{documento?.area?.nombre}</td>
-                                            <td>{documento?.formato?.nombre}</td>
                                             <td>
                                                 <button
                                                     className="btn btn-sm btn-success"
@@ -482,21 +476,26 @@ const libro = () => {
                             <div className='row '>
                                 <div className="mb-3 col">
                                     <label htmlFor="cantidad2" className="form-label">Cantidad</label>
-                                    <input type="number" className="form-control" id="cantidad2" defaultValue={selecteDocument?.cantidad} required /> </div>
-                                <div className='mb-3 col fecha'> <label htmlFor="recipient-name">Fecha de registro</label>
-                                 
-                                </div> <div className="mb-3 col">
+                                    <input type="number" className="form-control" id="cantidad2" defaultValue={selecteDocument?.cantidad} required />
+                                </div>
+                                <div className="mb-3 col">
                                     <label htmlFor="codigo" className="form-label">Codigo</label>
-                                    <input type="text" className="form-control" id="codigo2" defaultValue={selecteDocument?.codigo} required /> </div>
-                            </div> <div className='row '> <div className="mb-3 col"> <label htmlFor="ubicacion" className="form-label">Ubicacion</label>
-                                <input type="text" className="form-control" id="ubicacion2" defaultValue={selecteDocument?.ubicacion} required /> </div>
+                                    <input type="text" className="form-control" id="codigo2" defaultValue={selecteDocument?.codigo} required />
+                                </div>
+                            </div> <div className='row '>
+                                <div className="mb-3 col">
+                                    <label htmlFor="ubicacion" className="form-label">Ubicacion</label>
+                                    <input type="text" className="form-control" id="ubicacion2" defaultValue={selecteDocument?.ubicacion} required />
+                                </div>
                                 <div className="mb-3 col"> <label htmlFor="are" className="form-label">Area</label>
                                     <select className="form-control form-select" id="are2" aria-label="Default select example" defaultValue={selecteDocument?.area?.id} >
-                                        <option hidden selected>Selecciona Area</option> {areas.map((area) => <option key={area.id} value={area.id}>{area.nombre}</option>)}
+                                        <option hidden>Selecciona Area</option>
+                                        {areas.map((area) => <option key={area.id} value={area.id}>{area.nombre}</option>)}
                                     </select>
                                 </div>
                             </div>
-                            <button type="submit" className="btn btn-primary booton" onClick={handleEdit} data-bs-dismiss="modal">Editar</button> </form>
+                            <button type="submit" className="btn btn-primary booton" onClick={handleEdit} data-bs-dismiss="modal">Editar</button>
+                        </form>
                     </div>
                 </div>
             </div>

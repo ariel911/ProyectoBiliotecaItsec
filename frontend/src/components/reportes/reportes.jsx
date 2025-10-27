@@ -42,20 +42,25 @@ const ReporteDocumentos = () => {
             const fechaReserva = new Date(reserva.fecha_reserva);
             const reservaMes = fechaReserva.getMonth() + 1;
             const reservaAnio = fechaReserva.getFullYear();
+
             // Verificar si la reserva coincide con los estados seleccionados
             const estadoMatch = (
-                (estados.activos && reserva.estado === 1) ||
-                (estados.inactivos && reserva.estado === 0) ||
-                (estados.eliminados && reserva.estado === 2)
+                (estadosR.activos && reserva.estado === 1) ||
+                (estadosR.inactivos && reserva.estado === 0) ||
+                (estadosR.eliminados && reserva.estado === 2)
             );
+
             // Verificar si la reserva coincide con el mes y el año seleccionados
             const mesMatch = mesR ? parseInt(mesR) === reservaMes : true;
             const anioMatch = anioR ? parseInt(anioR) === reservaAnio : true;
+
             return estadoMatch && mesMatch && anioMatch;
         });
 
         setFilteredReservas(filtered);
     }, [reservas, estadosR, mesR, anioR]);
+
+
     useEffect(() => {
         const filtered = documentos.filter(doc => {
             const estadoMatch = (
@@ -126,7 +131,6 @@ const ReporteDocumentos = () => {
             { header: 'Código', key: 'codigo', width: 15 },
             { header: 'Área', key: 'area', width: 20 },
             { header: 'Carrera', key: 'carrera', width: 20 },
-            { header: 'Formato', key: 'formato', width: 15 },
             { header: 'Tipo de Documento', key: 'tipo_doc', width: 20 },
             { header: 'Autor(es)', key: 'autores', width: 30 }
         ];
@@ -143,7 +147,7 @@ const ReporteDocumentos = () => {
                 codigo: doc.codigo,
                 area: doc.area.nombre,
                 carrera: doc.carrera?.nombre,
-                formato: doc.formato.nombre,
+
                 tipo_doc: doc.tipo_doc.nombre,
                 autores: doc.documento_autors.map(da => da.autor.nombre).join(', ')
             });
@@ -271,23 +275,56 @@ const ReporteDocumentos = () => {
     //personas
     // Filtra los estudiantes según los filtros seleccionados
     const filteredPersonas = estudiantes?.filter((persona) => {
-        const matchesCarrera = selectedCarrera
-            ? persona.persona_carreras.some(
-                (carrera) => carrera.carrera.nombre === selectedCarrera
-            )
-            : true;
-        const matchesTipoPersona =
-            selectedTipoPersona === "todos"
-                ? true
-                : persona.tipo_persona?.nombre === selectedTipoPersona;
+        // Normalizar estado del registro (asegura número)
+        const estadoNum = persona.estado != null ? parseInt(persona.estado, 10) : null;
 
-        const matchesEstado = selectedEstadoPersona === "todos"
+        // ---- CARRERA ----
+        // Si selectedCarrera viene como id (numérico) o como nombre, lo manejamos.
+        const selectedCarreraNormalized = selectedCarrera != null
+            ? String(selectedCarrera).trim().toLowerCase()
+            : null;
+
+        const personaCarreras = Array.isArray(persona.persona_carreras)
+            ? persona.persona_carreras
+            : [];
+
+        const matchesCarrera = selectedCarreraNormalized
+            ? personaCarreras.some((c) => {
+                // proteger la ruta y normalizar nombre e id
+                const nombre = c?.carrera?.nombre ? String(c.carrera.nombre).trim().toLowerCase() : "";
+                const id = c?.carrera?.id != null ? String(c.carrera.id) : "";
+                return nombre === selectedCarreraNormalized || id === selectedCarreraNormalized;
+            })
+            : true;
+
+        // ---- TIPO DE PERSONA ----
+        const selectedTipoNormalized = selectedTipoPersona != null ? String(selectedTipoPersona).trim().toLowerCase() : "todos";
+        const personaTipo = persona.tipo_persona?.nombre ? String(persona.tipo_persona.nombre).trim().toLowerCase() : "";
+        const matchesTipoPersona = selectedTipoNormalized === "todos"
             ? true
-            : selectedEstadoPersona === "activos"
-                ? persona.estado === 1
-                : persona.estado === 0;
+            : personaTipo === selectedTipoNormalized;
+
+        // ---- ESTADO ----
+        // Acepta "todos", "activos", "inactivos", "eliminados"
+        const selectedEstadoNormalized = selectedEstadoPersona != null ? String(selectedEstadoPersona).trim().toLowerCase() : "todos";
+        let matchesEstado;
+        if (selectedEstadoNormalized === "todos") {
+            matchesEstado = true;
+        } else if (selectedEstadoNormalized === "activos") {
+            matchesEstado = estadoNum === 1;
+        } else if (selectedEstadoNormalized === "inactivos") {
+            matchesEstado = estadoNum === 0;
+        } else if (selectedEstadoNormalized === "eliminados") {
+            matchesEstado = estadoNum === 2;
+        } else {
+            // fallback por si el usuario pasa "1" / "0" / "2" directamente
+            const maybeEstado = parseInt(selectedEstadoNormalized, 10);
+            matchesEstado = !Number.isNaN(maybeEstado) ? estadoNum === maybeEstado : true;
+        }
+
         return matchesCarrera && matchesTipoPersona && matchesEstado;
     });
+
     const exportPersonasToExcel = async () => {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet("Reporte de Personas");
@@ -331,10 +368,10 @@ const ReporteDocumentos = () => {
         link.click();
     };
     return (
-        <div className="reportes container mt-5">
+        <div className="reportes container ">
             <h2 className="text-center mb-4 fw-bold text-primary">📊 Panel de Reportes</h2>
 
-            <ul className="nav nav-tabs justify-content-center mb-4" role="tablist">
+            <ul className="nav nav-tabs justify-content mb-4" role="tablist">
                 <li className="nav-item">
                     <a className="nav-link active fw-semibold" data-bs-toggle="tab" href="#documentos" role="tab">
                         Documentos
