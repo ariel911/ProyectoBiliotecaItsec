@@ -231,18 +231,20 @@ const prestamo = () => {
     };
 
     //react select y su buscador
-    const options = estudiantes?.map((autor) => ({
-        value: autor.id,
-        label: autor.ci,
-        nombre: autor.nombre,
-        sancion: autor.sancion
+
+    // Genera las opciones
+    const options = estudiantes?.filter((estudiante)=> estudiante.estado ===1).map((estudiante) => ({
+        value: estudiante.id,
+        label: estudiante.ci,
+        nombre: estudiante.nombre,
+        sancion: estudiante.sancion,
+        estado: estudiante.estado,
     }));
-    const handleSelectChange = (selectedOption) => {
-        setSelectedOption(selectedOption)
+
+    // Maneja el cambio de selección
+    const handleSelectChange = (option) => {
+        setSelectedOption(option);
     };
-    const filteredOptions = options?.filter((autor) =>
-        (autor.label + "").includes(selectedOption)
-    );
 
     function generarClaveUnica() {
         const caracteres = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -264,7 +266,6 @@ const prestamo = () => {
         this.field('autores')
         this.field('tipo_doc')
         this.field('area')
-        this.field('formato')
         this.field('carrera')
 
 
@@ -276,7 +277,6 @@ const prestamo = () => {
                 "autores": document?.documento_autors[0]?.autor?.nombre,
                 "tipo_doc": document?.tipo_doc?.nombre,
                 "area": document?.area?.nombre,
-                "formato": document?.formato?.nombre,
                 "carrera": document?.carrera?.nombre,
             })
         );
@@ -494,7 +494,6 @@ const prestamo = () => {
                                 <th>Cantidad</th>
                                 <th>Tipo</th>
                                 <th>Área</th>
-                                <th>Formato</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
@@ -514,7 +513,6 @@ const prestamo = () => {
                                     <td>{doc.cantidad}</td>
                                     <td>{doc.tipo_doc?.nombre}</td>
                                     <td>{doc.area?.nombre}</td>
-                                    <td>{doc.formato?.nombre}</td>
                                     <td>
                                         <button
                                             className="btn btn-outline-primary btn-sm"
@@ -741,7 +739,7 @@ const prestamo = () => {
                             <form>
                                 <div className="mb-3">
                                     <label className="form-label">Fecha Préstamo</label>
-                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} />
+                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly/>
                                 </div>
                                 <div className="mb-3">
                                     <label className="form-label">Fecha Devolver</label>
@@ -759,17 +757,19 @@ const prestamo = () => {
                                         onChange={e => setPrestamoData({ ...prestamoData, garantia: e.target.value })} />
                                 </div>
                                 <div className="mb-3">
-                                    <label className="form-label">Buscar Estudiante por CI</label>
+                                    <label className="form-label">Buscar Estudiante por CI o Nombre</label>
                                     <Select
-                                        options={filteredOptions}
+                                        options={options}
                                         onChange={handleSelectChange}
                                         isSearchable
-                                        placeholder="Selecciona Estudiante"
+                                        placeholder="Selecciona un estudiante"
                                         value={selectedOption}
+                                        getOptionLabel={(option) => `${option.label} - ${option.nombre}`} // CI + nombre
+                                        getOptionValue={(option) => option.value}
+                                        styles={{
+                                            menu: (provided) => ({ ...provided, zIndex: 9999 }), // evita problemas con modales
+                                        }}
                                     />
-                                </div>
-                                <div className="mb-3">
-                                    <input type="text" className="form-control" value={selectedOption?.nombre} disabled />
                                 </div>
                             </form>
                         </div>
@@ -855,7 +855,7 @@ const prestamo = () => {
                             <form>
                                 <div className="mb-3">
                                     <label className="form-label">Fecha Préstamo</label>
-                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} />
+                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly/>
                                 </div>
                                 <div className="mb-3">
                                     <label className="form-label">Fecha Devolver</label>

@@ -88,11 +88,12 @@ const Sanciones = () => {
       await axios.post("http://localhost:8000/api/sancion_historial", {
         ...quitarData,
         sancionId: selectedUser.id,
-        personaId: selectedUser.persona.id,
+        personaId: selectedUser.persona?.id,
         prestamoId: null,
       });
-
-      await axios.put(`http://localhost:8000/api/persona/baja/${selectedUser.persona.id}`, { estado: 1 });
+      if (selectedUser?.persona?.id) {
+        await axios.put(`http://localhost:8000/api/persona/baja/${selectedUser.persona.id}`, { estado: 1 });
+      }
 
       swal("✅ Sanción levantada con éxito", "", "success");
       cargarDatos();
@@ -275,7 +276,7 @@ const Sanciones = () => {
                         </tr>
                       );
                     })}
-                </tbody>  
+                </tbody>
               </table>
             </div>
           </div>
