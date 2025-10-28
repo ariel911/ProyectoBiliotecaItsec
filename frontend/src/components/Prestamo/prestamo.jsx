@@ -107,7 +107,7 @@ const prestamo = () => {
                 );
 
                 // Si hay una reserva activa, darla de baja
-                console.log("r:", reservas, "sele:", selectedUser.persona.id)
+
                 if (reservaPersona) {
                     await axios({
                         url: `http://localhost:8000/reservas/reserva/baja/${reservaPersona.id}`,
@@ -165,6 +165,46 @@ const prestamo = () => {
             });
         }
     };
+    const handleCancelarReserva = async (reserva) => {
+        swal({
+            title: "¿Cancelar reserva?",
+            text: `¿Estás seguro de cancelar la reserva del libro "${reserva.documento.titulo}"?`,
+            icon: "warning",
+            buttons: ["No", "Sí, cancelar"],
+            dangerMode: true,
+        }).then(async (willCancel) => {
+            if (willCancel) {
+                try {
+                    // Petición al backend para dar de baja la reserva
+                    await axios({
+                        url: `http://localhost:8000/reservas/reserva/cancelar/${reserva.id}`,
+                        method: "PUT",
+                        data: { estado: 0 },
+                    });
+
+                    // Refrescar datos
+                    handleGetReservas();
+                    handleGetUsers();
+
+                    swal({
+                        title: "Reserva cancelada",
+                        text: "La reserva fue cancelada correctamente y el libro ha sido actualizado.",
+                        icon: "success",
+                        button: "Ok",
+                    });
+                } catch (error) {
+                    console.error(error);
+                    swal({
+                        title: "Error",
+                        text: "No se pudo cancelar la reserva.",
+                        icon: "error",
+                        button: "Ok",
+                    });
+                }
+            }
+        });
+    };
+
     const handlePrestamo = async () => {
         if (selectedOption['sancion'] == null) {
             try {
@@ -233,7 +273,7 @@ const prestamo = () => {
     //react select y su buscador
 
     // Genera las opciones
-    const options = estudiantes?.filter((estudiante)=> estudiante.estado ===1).map((estudiante) => ({
+    const options = estudiantes?.filter((estudiante) => estudiante.estado === 1).map((estudiante) => ({
         value: estudiante.id,
         label: estudiante.ci,
         nombre: estudiante.nombre,
@@ -638,7 +678,7 @@ const prestamo = () => {
                                             </button>
                                             <button
                                                 className="btn btn-outline-danger btn-sm"
-                                                onClick={() => handleEliminarReserva(r.id)}
+                                                onClick={() =>  handleCancelarReserva(r)}
                                             >
                                                 Cancelar
                                             </button>
@@ -707,7 +747,7 @@ const prestamo = () => {
                                         <td>{s.persona?.nombre}</td>
                                         <td>{s.tipo_sancion}</td>
                                         <td>{s.descripcion}</td>
-                                        <td>{s.fecha_fin?.slice(0,10)}</td>
+                                        <td>{s.fecha_fin?.slice(0, 10)}</td>
                                         <td>{s.persona?.celular}</td>
                                         <td>
                                             <button
@@ -739,7 +779,7 @@ const prestamo = () => {
                             <form>
                                 <div className="mb-3">
                                     <label className="form-label">Fecha Préstamo</label>
-                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly/>
+                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly />
                                 </div>
                                 <div className="mb-3">
                                     <label className="form-label">Fecha Devolver</label>
@@ -855,7 +895,7 @@ const prestamo = () => {
                             <form>
                                 <div className="mb-3">
                                     <label className="form-label">Fecha Préstamo</label>
-                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly/>
+                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly />
                                 </div>
                                 <div className="mb-3">
                                     <label className="form-label">Fecha Devolver</label>

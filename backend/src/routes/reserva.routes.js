@@ -7,6 +7,7 @@ router.get('/', reservaController.listar)
 router.post('/', reservaController.crear)
 router.put('/:id', reservaController.update)
 router.put('/baja/:id', reservaController.darBaja)
+router.put('/cancelar/:id', reservaController.cancelar)
 router.delete('/:id', reservaController.eliminar)
 
 
