@@ -92,6 +92,21 @@ const PaginaLibros = () => {
                 return;
             }
 
+            // 🔹 Obtener todas las reservas
+            const { data } = await axios.get("http://localhost:8000/reservas/reserva");
+
+            // 🔹 Filtrar solo las activas del estudiante actual
+            const reservasActivas = data.data.reserva.filter(
+                (reserva) => parseInt(reserva.persona.id) === parseInt(personaId) && reserva.estado === 1
+            );
+
+            // 🔹 Validar máximo 2 reservas activas
+            if (reservasActivas.length >= 2) {
+                swal("Límite alcanzado", "Solo puedes tener hasta 2 reservas activas 📚", "warning");
+                return;
+            }
+
+            // 🔹 Crear reserva si pasa validación
             await axios.post("http://localhost:8000/reservas/reserva", {
                 fecha_reserva,
                 fecha_validez,
@@ -101,12 +116,14 @@ const PaginaLibros = () => {
             });
 
             swal("¡Reserva exitosa!", "Tu documento ha sido reservado.", "success");
+            fetchDocumentos();
             setModalType(null);
         } catch (error) {
             console.error(error);
             swal("Error al reservar el documento", "", "error");
         }
     };
+
 
     const Modal = () => {
         if (!selectedDocumento || !modalType) return null;
@@ -211,12 +228,24 @@ const PaginaLibros = () => {
     };
 
     const TarjetaDocumento = ({ documento }) => (
-        <div className="card m-2" style={{ width: "240px", height: "400px" }}>
+        <div className="card m-2 position-relative" style={{ width: "240px", height: "400px" }}>
+            {/* Imagen del documento */}
             <img
                 src={documento.imagen}
                 alt={documento.titulo}
-                style={{ height: "280px", width: "100%", objectFit: "cover" }}
+                style={{ height: "280px", width: "100%", objectFit: "cover", opacity: documento.estado === 0 ? 0.5 : 1 }}
             />
+
+            {/* 🟥 Etiqueta de “Agotado” */}
+            {documento.estado === 0 && (
+                <div
+                    className="position-absolute top-0 start-0 w-100 bg-danger text-white text-center fw-bold py-1"
+                    style={{ fontSize: "0.9rem" }}
+                >
+                    🚫 Agotado
+                </div>
+            )}
+
             <div className="card-body d-flex flex-column justify-content-between">
                 <h6 className="card-title text-center">{documento.titulo}</h6>
                 <div className="d-flex justify-content-between">
@@ -226,6 +255,7 @@ const PaginaLibros = () => {
                             setSelectedDocumento(documento);
                             setModalType("reserva");
                         }}
+                        disabled={documento.estado === 0} // 🔹 Deshabilitar si está agotado
                     >
                         Reservar
                     </button>
@@ -242,6 +272,7 @@ const PaginaLibros = () => {
             </div>
         </div>
     );
+
 
     return (
         <div className="contenedor3">

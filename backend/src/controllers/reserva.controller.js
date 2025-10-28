@@ -288,7 +288,7 @@ module.exports = {
       await reserva.update({ estado: 0 });
 
       // Aumentar la cantidad disponible del documento (+1)
-      await documento.update({ cantidad: documento.cantidad + 1 });
+      await documento.update({ cantidad: documento.cantidad + 1,estado:1 });
 
       res.json({
         success: true,

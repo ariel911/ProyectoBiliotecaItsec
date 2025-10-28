@@ -48,6 +48,29 @@ const prestamo = () => {
     const [pres, setPres] = useState(null);
     //upadte const update
     useEffect(() => {
+        // Detectar cuando se muestra una nueva pestaña de Bootstrap
+        const tabs = document.querySelectorAll('#prestamoTabs a[data-bs-toggle="tab"]');
+
+        const handleTabChange = (event) => {
+            const target = event.target.getAttribute("href"); // Ej: "#reservas"
+
+            if (target === "#reservas") {
+                handleGetReservas(); // 🔄 Actualizar reservas al entrar a la pestaña
+            }
+        };
+
+        tabs.forEach((tab) => {
+            tab.addEventListener("shown.bs.tab", handleTabChange);
+        });
+
+        // Limpieza al desmontar el componente
+        return () => {
+            tabs.forEach((tab) => {
+                tab.removeEventListener("shown.bs.tab", handleTabChange);
+            });
+        };
+    }, []);
+    useEffect(() => {
         handleGetUsers();
         handleGetReservas();
         handleEstudiantes();
@@ -678,7 +701,7 @@ const prestamo = () => {
                                             </button>
                                             <button
                                                 className="btn btn-outline-danger btn-sm"
-                                                onClick={() =>  handleCancelarReserva(r)}
+                                                onClick={() => handleCancelarReserva(r)}
                                             >
                                                 Cancelar
                                             </button>

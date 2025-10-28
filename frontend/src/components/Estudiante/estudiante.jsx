@@ -75,6 +75,34 @@ const Estudiante = ({ handleAddUser }) => {
   // ============================ FORMULARIO MANUAL ==============================
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validación de campos vacíos (opcional pero recomendable)
+    if (!nombre || !correo || !ci || !celular || !carre || !tipo) {
+      swal('Advertencia', 'Por favor completa todos los campos', 'warning');
+      return;
+    }
+
+    // Validar duplicados
+    const ciExiste = estudiantes.some(est => est.ci === ci);
+    const correoExiste = estudiantes.some(est => est.correo === correo);
+    const celularExiste = estudiantes.some(est => est.celular === celular);
+
+    if (ciExiste) {
+      swal('Duplicado', 'El CI ya está registrado', 'warning');
+      return;
+    }
+
+    if (correoExiste) {
+      swal('Duplicado', 'El correo ya está registrado', 'warning');
+      return;
+    }
+
+    if (celularExiste) {
+      swal('Duplicado', 'El número de celular ya está registrado', 'warning');
+      return;
+    }
+
+    // Si pasa las validaciones, se envía la solicitud
     try {
       await axios.post('http://localhost:8000/api/persona', {
         nombre,
@@ -85,19 +113,25 @@ const Estudiante = ({ handleAddUser }) => {
         carreras: [carre],
         tipoPersonaId: tipo,
       });
+
+      // Limpiar los campos
       setNombre('');
       setCorreo('');
       setCi('');
       setCelular('');
       setCarre('');
       setTipo('');
+
+      // Actualizar la lista
       await handleGetEstudiantes();
+
       swal('Éxito', 'Estudiante agregado con éxito', 'success');
     } catch (error) {
       console.error('Error agregando estudiante', error);
       swal('Error', 'Hubo un error al agregar el estudiante', 'error');
     }
   };
+
 
   // ============================ CARGAR DESDE EXCEL ==============================
   const handleFileUpload = (e) => {
@@ -121,6 +155,57 @@ const Estudiante = ({ handleAddUser }) => {
         swal('Error', 'Debes seleccionar un tipo de persona', 'error');
         return;
       }
+
+      // 🔹 Validar duplicados dentro del mismo Excel
+      const ciSet = new Set();
+      const correoSet = new Set();
+      const celularSet = new Set();
+      const duplicados = [];
+
+      excelEstudiantes.forEach((est, index) => {
+        if (ciSet.has(est.ci)) duplicados.push(`Fila ${index + 1}: CI duplicado`);
+        if (correoSet.has(est.correo)) duplicados.push(`Fila ${index + 1}: Correo duplicado`);
+        if (celularSet.has(est.celular)) duplicados.push(`Fila ${index + 1}: Celular duplicado`);
+        ciSet.add(est.ci);
+        correoSet.add(est.correo);
+        celularSet.add(est.celular);
+      });
+
+      if (duplicados.length > 0) {
+        swal(
+          'Error',
+          `Se encontraron duplicados dentro del Excel:\n\n${duplicados.join('\n')}`,
+          'error'
+        );
+        return;
+      }
+
+      // 🔹 Verificar duplicados con estudiantes ya registrados
+      const duplicadosExistentes = excelEstudiantes.filter((est) =>
+        estudiantes.some(
+          (existente) =>
+            existente.ci === est.ci ||
+            existente.correo === est.correo ||
+            existente.celular === est.celular
+        )
+      );
+
+      if (duplicadosExistentes.length > 0) {
+        const lista = duplicadosExistentes
+          .map(
+            (e, i) =>
+              `${i + 1}. ${e.nombre || 'Sin nombre'} (CI: ${e.ci || 'N/A'}, Correo: ${e.correo || 'N/A'})`
+          )
+          .join('\n');
+        swal(
+          'Advertencia',
+          `Los siguientes estudiantes ya existen en el sistema:\n\n${lista}\n\n❌ No se cargaron.`,
+          'warning'
+        );
+        return;
+      }
+
+      // 🔹 Preparar los datos para envío
       const estudiantesConDatos = excelEstudiantes.map((est) => {
         const carreraEncontrada = carreras.find(
           (c) => c.nombre.toLowerCase() === (est.carrera || '').toString().toLowerCase()
@@ -133,21 +218,24 @@ const Estudiante = ({ handleAddUser }) => {
         };
       });
 
-      // eliminar campos sobrantes si existen
+      // Eliminar campos extra si existen
       estudiantesConDatos.forEach((obj) => {
         delete obj.Nro;
         delete obj.carrera;
       });
 
+      // 🔹 Enviar los datos
       await Promise.all(
-        estudiantesConDatos.map((est) => axios.post('http://localhost:8000/api/persona', est))
+        estudiantesConDatos.map((est) =>
+          axios.post('http://localhost:8000/api/persona', est)
+        )
       );
 
       swal('Éxito', 'Estudiantes cargados correctamente ✅', 'success');
       setExcelEstudiantes([]);
       await handleGetEstudiantes();
     } catch (error) {
-      console.error(error);
+      console.error('Error al guardar estudiantes desde Excel:', error);
       swal('Error', 'Hubo un error al guardar los estudiantes ❌', 'error');
     }
   };
@@ -244,7 +332,7 @@ const Estudiante = ({ handleAddUser }) => {
 
   // ============================ RENDER ==============================
   return (
-    <div className="container mt-4 estudiante"> 
+    <div className="container mt-4 estudiante">
       <h2 className="text-center mb-4 fw-bold text-primary"> 👥 Gestión de Miembros</h2>
 
       <ul className="nav nav-tabs" id="tabEstudiantes" role="tablist">
@@ -405,7 +493,7 @@ const Estudiante = ({ handleAddUser }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {searchResults.map((est, i) => est.estado==1 && (
+                  {searchResults.map((est, i) => est.estado == 1 && (
                     <tr key={est.id}>
                       <td>{i + 1}</td>
                       <td>{est.nombre}</td>
