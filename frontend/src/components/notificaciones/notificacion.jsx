@@ -65,7 +65,7 @@ const Notificaciones = () => {
                 nuevas.push({
                     tipo: "prestamo",
                     mensaje: `Préstamo vencido: ${p.documento?.titulo || "Documento"} (${p.persona?.nombre})`,
-                    ruta: "home/prestamo",
+                    ruta: "home/prestamo#historial",
                     color: "warning",
                 });
             }
@@ -77,7 +77,7 @@ const Notificaciones = () => {
                 nuevas.push({
                     tipo: "sancion",
                     mensaje: `Sanción finalizada: ${s.persona?.nombre}`,
-                    ruta: "home/sancion",
+                    ruta: "home/sancion#tab2",
                     color: "success",
                 });
             }
@@ -155,7 +155,6 @@ const Notificaciones = () => {
                                             key={i}
                                             className={`list-group-item border-start border-4 border-${n.color} d-flex justify-content-between align-items-center`}
                                         >
-
                                             <div>
                                                 <span className={`badge bg-${n.color} me-2`}>
                                                     {n.tipo.toUpperCase()}
@@ -163,18 +162,9 @@ const Notificaciones = () => {
                                                 {n.mensaje}
 
                                             </div>
-                                            <Link className="btn btn-sm btn-outline-secondary" to={n.ruta}>
+                                            <Link className="btn btn-sm btn-outline-secondary" to={n.ruta} onClick={() => setShowModal(false)}>
                                                 <i className="bi bi-arrow-right"></i>
                                             </Link>
-                                            {/* <div>
-
-                                                <button
-                                                    className="btn btn-sm btn-outline-secondary"
-                                                    onClick={() => handleMarcarLeido(i)}
-                                                >
-                                                    <i className="bi bi-check2"></i>
-                                                </button>
-                                            </div> */}
                                         </li>
                                     ))}
                                 </ul>

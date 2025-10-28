@@ -693,7 +693,7 @@ const prestamo = () => {
                                 <th>Nombre</th>
                                 <th>Sanción</th>
                                 <th>Descripción</th>
-                                <th>CI</th>
+                                <th>Fecha Finalización</th>
                                 <th>Celular</th>
                                 <th>Acción</th>
                             </tr>
@@ -707,7 +707,7 @@ const prestamo = () => {
                                         <td>{s.persona?.nombre}</td>
                                         <td>{s.tipo_sancion}</td>
                                         <td>{s.descripcion}</td>
-                                        <td>{s.persona?.ci}</td>
+                                        <td>{s.fecha_fin?.slice(0,10)}</td>
                                         <td>{s.persona?.celular}</td>
                                         <td>
                                             <button

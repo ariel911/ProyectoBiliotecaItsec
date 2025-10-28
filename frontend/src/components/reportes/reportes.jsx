@@ -392,6 +392,11 @@ const ReporteDocumentos = () => {
                         Personas
                     </a>
                 </li>
+                <li className="nav-item">
+                    <a className="nav-link fw-semibold" data-bs-toggle="tab" href="#reporteDiario" role="tab">
+                        Actividad del dia
+                    </a>
+                </li>
             </ul>
 
             <div className="tab-content border rounded p-4 shadow-sm bg-white">
@@ -808,6 +813,7 @@ const ReporteDocumentos = () => {
                         </table>
                     </div>
                 </div>
+                
             </div>
         </div>
 
