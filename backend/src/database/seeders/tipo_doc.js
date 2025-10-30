@@ -16,19 +16,17 @@ module.exports = {
       models.tipo_doc.findOrCreate({
         where: { id: 2 },
         defaults: {
-          nombre: 'Tesis',
+          nombre: 'Libro',
           estado: 1, // Activo
         }
       }),
       models.tipo_doc.findOrCreate({
         where: { id: 3 },
         defaults: {
-          nombre: 'Libro',
+          nombre: 'Tesis',
           estado: 1, // Activo
         }
       }),
-
-  
 
     ]);
   },

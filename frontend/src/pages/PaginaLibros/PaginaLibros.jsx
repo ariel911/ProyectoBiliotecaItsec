@@ -96,13 +96,13 @@ const PaginaLibros = () => {
             const { data } = await axios.get("http://localhost:8000/reservas/reserva");
 
             // 🔹 Filtrar solo las activas del estudiante actual
-            const reservasActivas = data.data.reserva.filter(
+            const reservasActivas = data.data.reserva.find(
                 (reserva) => parseInt(reserva.persona.id) === parseInt(personaId) && reserva.estado === 1
             );
 
             // 🔹 Validar máximo 2 reservas activas
-            if (reservasActivas.length >= 2) {
-                swal("Límite alcanzado", "Solo puedes tener hasta 2 reservas activas 📚", "warning");
+            if (reservasActivas) {
+                swal("Límite alcanzado", "Solo puedes tener hasta 1 reserva activa 📚", "warning");
                 return;
             }
 
@@ -130,46 +130,89 @@ const PaginaLibros = () => {
 
         return (
             <div className="modal fade show" style={{ display: "block" }}>
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title">
+                <div className="modal-dialog modal-lg modal-dialog-centered">
+                    <div className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                        {/* Header */}
+                        <div className="modal-header bg-primary text-white">
+                            <h5 className="modal-title fw-semibold">
                                 {modalType === "detalle"
                                     ? selectedDocumento.titulo
                                     : `Reservar: ${selectedDocumento.titulo}`}
                             </h5>
                             <button
                                 type="button"
-                                className="btn-close"
+                                className="btn-close btn-close-white"
                                 onClick={() => setModalType(null)}
                             ></button>
                         </div>
 
+                        {/* Body */}
                         <div className="modal-body">
                             {modalType === "detalle" ? (
-                                <>
-                                    <p>
-                                        <strong>Descripción:</strong>{" "}
-                                        {selectedDocumento.descripcion || "Sin descripción"}
-                                    </p>
-                                    <p>
-                                        <strong>Autor(es):</strong>{" "}
-                                        {selectedDocumento.documento_autors
-                                            .map((a) => a.autor?.nombre)
-                                            .join(", ")}
-                                    </p>
-                                    <p>
-                                        <strong>Carrera:</strong>{" "}
-                                        {selectedDocumento.carrera?.nombre || "N/A"}
-                                    </p>
-                                    <p>
-                                        <strong>Cantidad:</strong> {selectedDocumento.cantidad}
-                                    </p>
-                                </>
+                                <div className="row g-4">
+                                    {/* Imagen */}
+                                    <div className="col-md-5 d-flex justify-content-center align-items-start">
+                                        <img
+                                            src={selectedDocumento.imagen}
+                                            alt={selectedDocumento.titulo}
+                                            className="img-fluid rounded-3 shadow-sm"
+                                            style={{
+                                                width: "90%",
+                                                height: "300px",
+                                                objectFit: "cover",
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Datos */}
+                                    <div className="col-md-7">
+                                        <h5 className="fw-bold text-primary mb-2">
+                                            {selectedDocumento.titulo}
+                                        </h5>
+
+                                        <p className="text-muted">{selectedDocumento.descripcion || "Sin descripción"}</p>
+
+                                        <p>
+                                            <strong>📅 Año de edición:</strong>{" "}
+                                            {selectedDocumento?.anio_edicion?.slice(0, 10) || "Sin especificar"}
+                                        </p>
+
+                                        <p>
+                                            <strong>📦 Cantidad:</strong>{" "}
+                                            {selectedDocumento.cantidad}
+                                        </p>
+
+                                        <p>
+                                            <strong>📚 Área:</strong>{" "}
+                                            {selectedDocumento.area?.nombre || "No asignada"}
+                                        </p>
+
+                                        {/* Autores */}
+                                        {selectedDocumento.documento_autors &&
+                                            selectedDocumento.documento_autors.length > 0 && (
+                                                <p>
+                                                    <strong>✍️ Autor(es):</strong>{" "}
+                                                    {selectedDocumento.documento_autors
+                                                        .map((a) => a.autor?.nombre)
+                                                        .filter(Boolean)
+                                                        .join(", ")}
+                                                </p>
+                                            )}
+
+                                        {/* Carrera solo si NO es libro */}
+                                        {selectedDocumento.tipo_doc?.nombre !== "libro" && (
+                                            <p>
+                                                <strong>🎓 Carrera:</strong>{" "}
+                                                {selectedDocumento.carrera?.nombre || "N/A"}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
                             ) : (
+                                // 🟢 Modal de Reserva
                                 <form>
                                     <div className="mb-3">
-                                        <label>Nombre</label>
+                                        <label className="form-label fw-semibold">Nombre</label>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -178,7 +221,7 @@ const PaginaLibros = () => {
                                         />
                                     </div>
                                     <div className="mb-3">
-                                        <label>Cantidad Disponible</label>
+                                        <label className="form-label fw-semibold">Cantidad Disponible</label>
                                         <input
                                             type="text"
                                             className="form-control"
@@ -187,7 +230,7 @@ const PaginaLibros = () => {
                                         />
                                     </div>
                                     <div className="mb-3">
-                                        <label>Fecha de reserva</label>
+                                        <label className="form-label fw-semibold">Fecha de reserva</label>
                                         <input
                                             type="datetime-local"
                                             className="form-control"
@@ -196,7 +239,7 @@ const PaginaLibros = () => {
                                         />
                                     </div>
                                     <div className="mb-3">
-                                        <label>Validez de reserva</label>
+                                        <label className="form-label fw-semibold">Validez de reserva</label>
                                         <input
                                             type="datetime-local"
                                             className="form-control"
@@ -208,11 +251,9 @@ const PaginaLibros = () => {
                             )}
                         </div>
 
+                        {/* Footer */}
                         <div className="modal-footer">
-                            <button
-                                className="btn btn-secondary"
-                                onClick={() => setModalType(null)}
-                            >
+                            <button className="btn btn-secondary" onClick={() => setModalType(null)}>
                                 Cerrar
                             </button>
                             {modalType === "reserva" && (
@@ -224,18 +265,25 @@ const PaginaLibros = () => {
                     </div>
                 </div>
             </div>
+
         );
     };
 
     const TarjetaDocumento = ({ documento }) => (
-        <div className="card m-2 position-relative" style={{ width: "240px", height: "400px" }}>
+        <div className="card m-2 position-relative" style={{ width: "230px", height: "370px" }}>
             {/* Imagen del documento */}
-            <img
+            {documento.tipo_doc.nombre === "Libro" ? (
+                <img
+                    src={documento.imagen}
+                    alt={documento.titulo}
+                    style={{ height: "240px", width: "100%", objectFit: "cover", opacity: documento.estado === 0 ? 0.5 : 1 }}
+                />
+            ) : <img
                 src={documento.imagen}
                 alt={documento.titulo}
-                style={{ height: "280px", width: "100%", objectFit: "cover", opacity: documento.estado === 0 ? 0.5 : 1 }}
+                style={{ height: "220px", width: "100%", objectFit: "cover", opacity: documento.estado === 0 ? 0.5 : 1 }}
             />
-
+            }
             {/* 🟥 Etiqueta de “Agotado” */}
             {documento.estado === 0 && (
                 <div

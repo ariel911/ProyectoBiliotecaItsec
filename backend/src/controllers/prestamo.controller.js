@@ -128,6 +128,37 @@ module.exports = {
     }
 
   },
+  actualizarFechaFin: async (req, res) => {
+    try {
+      const { id } = req.params; // id del préstamo a actualizar
+      const { fecha_devolucion } = req.body; // nueva fecha fin
+
+      // Buscar el préstamo por id
+      const prestamo = await models.prestamo.findByPk(id);
+
+      if (!prestamo) {
+        return res.status(404).json({
+          success: false,
+          error: 'Préstamo no encontrado'
+        });
+      }
+      // Actualizar solo la fecha_fin
+      prestamo.fecha_devolucion = fecha_devolucion;
+      await prestamo.save();
+      res.status(200).json({
+        success: true,
+        message: 'Fecha de fin actualizada correctamente',
+        data: prestamo
+      });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        error: 'Ha ocurrido un error al actualizar la fecha de fin'
+      });
+    }
+  },
   crearPR: async (req, res) => {
     try {
       const prestamos = await models.prestamo.create(req.body);

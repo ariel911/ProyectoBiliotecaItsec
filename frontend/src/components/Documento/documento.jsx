@@ -28,7 +28,7 @@ const documento = () => {
     const [todosAutores, setTodosAutores] = useState([]);
     const [tiposDocumento, setTiposDocumento] = useState([]);
     const [documentos, setDocumentos] = useState([]);
-
+    const [selectedDocumento, setSelectedDocumento] = useState(null);
     const [carreras, setCarreras] = useState([]);
     const [selecteDocument, setSelecteDocument] = useState(null);
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -47,7 +47,7 @@ const documento = () => {
             document.getElementById('ubicacion2').value = selecteDocument?.ubicacion || '';
             document.getElementById('codigo2').value = selecteDocument?.codigo || '';
             document.getElementById('cantidad2').value = selecteDocument?.cantidad || '';
-   /*          document.getElementById('are2').value = selecteDocument?.area?.id || null; */
+            document.getElementById('area2').value = selecteDocument?.area?.id || null;
         }
         handleGetDocuments();
 
@@ -88,10 +88,8 @@ const documento = () => {
         await axios({
             url: `http://localhost:8000/api/documento/baja/${document}`,
             method: "PUT",
-
             data: {
                 estado: 0,
-
             },
         }).then((response) => {
             // Accede a la respuesta de la API
@@ -107,11 +105,9 @@ const documento = () => {
     }
     const handleEdit = async (e) => {
         e.preventDefault();
-
         await axios({
             url: `http://localhost:8000/api/documento/${selecteDocument.id}`,
             method: "PUT",
-
             data: {
                 titulo: document.getElementById('titulo2').value,
                 cantidad: document.getElementById('cantidad2').value,
@@ -119,30 +115,21 @@ const documento = () => {
                 ubicacion: document.getElementById('ubicacion2').value,
                 Codigo: document.getElementById('codigo2').value,
                 estado: 1,
-              /*   areaId: document.getElementById('are2').value, */
+                areaId: document.getElementById('area2').value, // ✅ aquí el área
             },
-        }).then((response) => {
-            // Accede a la respuesta de la API
-            console.log("Respuesta de la API:", response.data);
         });
 
-
-        // Update the user in the local state
         swal({
-            title: "documento Editado!",
-            /* text: "Por favor, completa todos los campos requeridos", */
+            title: "Documento editado!",
             icon: "success",
             button: "Ok",
         });
         handleGetDocuments();
         setSelecteDocument(null);
-
     };
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         const selectedOptionIds = selectedOption.map((option) => option.value);
-
         // Realizar la solicitud para agregar el usuario
         try {
             const response = await axios.post(
@@ -177,7 +164,6 @@ const documento = () => {
             setCodigo('');
             setFechaRegistro('');
             setSelectedOption('');
-
             swal({
                 title: "documento Agregado!",
                 /* text: "Por favor, completa todos los campos requeridos", */
@@ -194,36 +180,30 @@ const documento = () => {
         const res = await axios.get('http://localhost:8000/api/tipo_doc',
 
         );
-
         setTiposDocumento(res.data.data.tipo_doc);
     };
     const handleGetDocuments = async () => {
         const res = await axios.get('http://localhost:8000/api/documento',
         );
-
         setDocumentos(res.data.data.documentos);
         setSearchResults(res.data.data.documentos)
     };
     const getCarreras = async () => {
         const res = await axios.get('http://localhost:8000/api/carrera',
         );
-
         setCarreras(res.data.data.carrera);
     };
 
     const getArea = async () => {
         const res = await axios.get('http://localhost:8000/api/area',
         );
-
         setAreas(res.data.data.area);
     };
     const getAutores = async () => {
         const res = await axios.get('http://localhost:8000/api/autor',
         );
-
         setTodosAutores(res.data.data.autores);
     };
-
     const options = todosAutores.map((autor) => ({
         value: autor.id,
         label: autor.nombre,
@@ -235,7 +215,6 @@ const documento = () => {
         autor.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
     //busqueda
-
     var idx = lunr(function () {
         this.field('id')
         this.field('title')
@@ -243,10 +222,7 @@ const documento = () => {
         this.field('autores')
         this.field('tipo_doc')
         this.field('area')
-
         this.field('carrera')
-
-
         documentos?.map((document, ind) =>
             this.add({
                 "id": document.id,
@@ -255,7 +231,6 @@ const documento = () => {
                 "autores": document?.documento_autors[0]?.autor?.nombre,
                 "tipo_doc": document?.tipo_doc?.nombre,
                 "area": document?.area?.nombre,
-               
                 "carrera": document?.carrera?.nombre,
             })
         );
@@ -267,11 +242,9 @@ const documento = () => {
     const handleChange = (event) => {
         const text = event.target.value;
         setSearchText(text);
-
         // Realiza la búsqueda en función del texto ingresado (puedes usar una función de búsqueda o llamar a una API aquí)
         // Por ahora, simplemente vamos a simular algunos resultados de búsqueda
         const results = simulateSearch(text);
-
         setSearchResults(results);
     };
 
@@ -296,7 +269,6 @@ const documento = () => {
             <h1 className="tituloProyecto text-center mb-4 text-primary fw-bold">
                 📚 Documentos Académicos
             </h1>
-
             {/* NAV TABS */}
             <ul className="nav nav-tabs shadow-sm rounded overflow-hidden">
                 <li className="nav-item">
@@ -318,7 +290,6 @@ const documento = () => {
 
             {/* CONTENIDO DE PESTAÑAS */}
             <div className="tab-content p-4 bg-light rounded-bottom shadow-sm">
-
                 {/* 🟢 AGREGAR DOCUMENTOS */}
                 <div className="tab-pane fade show active" id="agregar">
                     <form className="p-3 bg-white rounded shadow-sm border">
@@ -381,10 +352,6 @@ const documento = () => {
                                 <label htmlFor="fechaRegistro" className="form-label fw-semibold">Fecha de registro</label>
                                 <input type="datetime-local" className="form-control" value={fechaRegistro} onChange={(e) => setFechaRegistro(e.target.value)} required />
                             </div>
-
-
-
-
                             <div className="col-md-3">
                                 <label htmlFor="are" className="form-label fw-semibold">Área</label>
                                 <select className="form-select" id="are" value={are} onChange={(e) => setAre(e.target.value)}>
@@ -428,11 +395,11 @@ const documento = () => {
                                     <tr>
                                         <th>#</th>
                                         <th>Título</th>
+                                        <th>Descripción</th>
                                         <th>Autores</th>
                                         <th>Cantidad</th>
                                         <th>Carrera</th>
                                         <th>Área</th>
-                                        
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -441,21 +408,47 @@ const documento = () => {
                                         (documento.estado == 1 && documento.tipo_doc.nombre !== 'Libro') && (
                                             <tr key={documento.id}>
                                                 <td>{index + 1}</td>
-                                             
                                                 <td>{documento.titulo}</td>
+                                                <td>{documento.descripcion}</td>
                                                 <td>{`${documento.documento_autors[0]?.autor?.nombre || ''}${documento.documento_autors[1] ? ', ' + documento.documento_autors[1]?.autor?.nombre : ''}`}</td>
                                                 <td>{documento.cantidad}</td>
                                                 <td>{documento?.carrera?.nombre}</td>
                                                 <td>{documento?.area?.nombre}</td>
-                                                
+
                                                 <td>
-                                                    <button className="btn btn-sm btn-primary me-2" data-bs-toggle="modal" data-bs-target="#modalEditDocumento" onClick={() => handleEditDocument(documento)}>
-                                                        <i className="bi bi-pencil-square"></i>
-                                                    </button>
-                                                    <button className="btn btn-sm btn-danger" onClick={() => handleDarBaja(documento.id)}>
-                                                        <i className="bi bi-trash"></i>
-                                                    </button>
+                                                    <div className="d-flex gap-2">
+                                                        <button
+                                                            className="btn btn-sm btn-primary"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modalEditDocumento"
+                                                            onClick={() => handleEditDocument(documento)}
+                                                        >
+                                                            <i className="bi bi-pencil-square"></i>
+                                                        </button>
+
+                                                        <button
+                                                            className="btn btn-sm btn-danger"
+                                                            onClick={() => handleDarBaja(documento.id)}
+                                                        >
+                                                            <i className="bi bi-trash"></i>
+                                                        </button>
+
+                                                        <button
+                                                            className="btn btn-sm btn-outline-secondary"
+                                                            title="Ver detalles"
+                                                            onClick={() => {
+                                                                setSelectedDocumento(documento);
+                                                                const modal = new bootstrap.Modal(
+                                                                    document.getElementById("modalDetalleDocumento")
+                                                                );
+                                                                modal.show();
+                                                            }}
+                                                        >
+                                                            <i className="bi bi-eye"></i>
+                                                        </button>
+                                                    </div>
                                                 </td>
+
                                             </tr>
                                         )
                                     ))}
@@ -476,7 +469,7 @@ const documento = () => {
                                     <th>Autores</th>
                                     <th>Cantidad</th>
                                     <th>Área</th>
-                                  <th>Formato</th>
+                                    <th>Formato</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
@@ -489,7 +482,6 @@ const documento = () => {
                                             <td>{`${documento.documento_autors[0]?.autor?.nombre || ''}${documento.documento_autors[1] ? ', ' + documento.documento_autors[1]?.autor?.nombre : ''}`}</td>
                                             <td>{documento.cantidad}</td>
                                             <td>{documento?.area?.nombre}</td>
-                                      
                                             <td>
                                                 <button className="btn btn-success btn-sm" onClick={() => handleDarReintegrar(documento.id)}>
                                                     <i className="bi bi-arrow-clockwise me-1"></i>Reintegrar
@@ -503,7 +495,7 @@ const documento = () => {
                     </div>
                 </div>
             </div>
-            {/* MODAL Editar Documento (sin tocar lógica) */}
+            {/* MODAL Editar Documento */}
             <div className="modal fade" id="modalEditDocumento" tabIndex="-1" aria-hidden="true">
                 <div className="modal-dialog modal-lg modal-dialog-centered">
                     <div className="modal-content border-0 shadow-lg rounded-3">
@@ -514,7 +506,7 @@ const documento = () => {
                             <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div className="modal-body">
-                            {/* Tu formulario de edición original sin cambios de lógica */}
+
                             <form> <div className='row '>
                                 <div className="mb-3 col">
                                     <label htmlFor="titulo2" className="form-label">Titulo</label>
@@ -524,20 +516,141 @@ const documento = () => {
                                     <input type="text" className="form-control" id="descripcion2" defaultValue={selecteDocument?.descripcion} required /> </div>
                                 <div className='mb-3 col selectAutores'>
                                     <label htmlFor="autor" className="form-label">Autor</label>
-                                    <input type="text" className="form-control" id="autor" value={`${selecteDocument?.documento_autors[0]?.autor?.nombre ? selecteDocument?.documento_autors[0]?.autor?.nombre : ''}, ${selecteDocument?.documento_autors[1]?.autor?.nombre ? selecteDocument?.documento_autors[1]?.autor?.nombre : ''}`} disabled /> </div>
+                                    <input type="text" className="form-control" id="autor" value={`${selecteDocument?.documento_autors[0]?.autor?.nombre ? selecteDocument?.documento_autors[0]?.autor?.nombre : ''}, ${selecteDocument?.documento_autors[1]?.autor?.nombre ? selecteDocument?.documento_autors[1]?.autor?.nombre : ''}`} disabled />
+                                </div>
                             </div>
                                 <div className='row '>
                                     <div className="mb-3 col">
                                         <label htmlFor="cantidad2" className="form-label">Cantidad</label>
-                                        <input type="number" className="form-control" id="cantidad2" defaultValue={selecteDocument?.cantidad} required /> </div>
+                                        <input type="number" className="form-control" id="cantidad2" defaultValue={selecteDocument?.cantidad} required />
+                                    </div>
                                     <div className="mb-3 col">
                                         <label htmlFor="codigo" className="form-label">Codigo</label>
-                                        <input type="text" className="form-control" id="codigo2" defaultValue={selecteDocument?.codigo} required /> </div>
-                                </div> <div className='row '> <div className="mb-3 col"> <label htmlFor="ubicacion" className="form-label">Ubicacion</label>
-                                    <input type="text" className="form-control" id="ubicacion2" defaultValue={selecteDocument?.ubicacion} required /> </div>
-
+                                        <input type="text" className="form-control" id="codigo2" defaultValue={selecteDocument?.codigo} required />
+                                    </div>
                                 </div>
-                                <button type="submit" className="btn btn-primary booton" onClick={handleEdit} data-bs-dismiss="modal">Editar</button> </form>
+                                <div className='row'>
+                                    <div className='mb-3 col '>
+                                        <div className="mb-3 col"> <label htmlFor="ubicacion" className="form-label">Ubicacion</label>
+                                            <input type="text" className="form-control" id="ubicacion2" defaultValue={selecteDocument?.ubicacion} required />
+                                        </div>
+                                    </div>
+                                    <div className="mb-3 col">
+                                        <label htmlFor="area2" className="form-label">Área</label>
+                                        <select className="form-select" id="area2" required>
+                                            <option value="">Seleccione un área</option>
+                                            {areas.map((area) => (
+                                                <option key={area.id} value={area.id}>
+                                                    {area.nombre}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" className="btn btn-primary booton" onClick={handleEdit} data-bs-dismiss="modal">Editar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {/* modal para detalles */}
+            <div
+                className="modal fade"
+                id="modalDetalleDocumento"
+                tabIndex="-1"
+                aria-labelledby="modalDetalleDocumentoLabel"
+                aria-hidden="true"
+            >
+                <div className="modal-dialog modal-lg modal-dialog-centered">
+                    <div className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                        {/* Header */}
+                        <div className="modal-header bg-primary text-white">
+                            <h5 className="modal-title fw-semibold" id="modalDetalleDocumentoLabel">
+                                <i className="bi bi-book me-2"></i> Detalles del Documento
+                            </h5>
+                            <button
+                                type="button"
+                                className="btn-close btn-close-white"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"
+                            ></button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="modal-body">
+                            {selectedDocumento ? (
+                                <div className="row g-4">
+                                    {/* Imagen */}
+                                    <div className="col-md-5 d-flex justify-content-center">
+                                        <img
+                                            src={selectedDocumento.imagen}
+                                            alt={selectedDocumento.titulo}
+                                            className="img-fluid rounded-3 shadow-sm"
+                                            style={{
+                                                width: "100%",
+                                                height: "260px",
+                                                objectFit: "cover",
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Datos */}
+                                    <div className="col-md-7">
+                                        <h4 className="fw-bold text-primary mb-2">
+                                            {selectedDocumento.titulo}
+                                        </h4>
+
+                                        <p className="text-muted">
+                                            {selectedDocumento.descripcion || "Sin descripción disponible."}
+                                        </p>
+
+                                        <p>
+                                            <strong>📅 Año de edición:</strong>{" "}
+                                            {selectedDocumento.anio_edicion || "Sin especificar"}
+                                        </p>
+
+                                        <p>
+                                            <strong>📦 Cantidad:</strong>{" "}
+                                            {selectedDocumento.cantidad}
+                                        </p>
+
+                                        <p>
+                                            <strong>📚 Área:</strong>{" "}
+                                            {selectedDocumento.area?.nombre || "No asignada"}
+                                        </p>
+
+                                        {selectedDocumento.documento_autors?.length > 0 && (
+                                            <p>
+                                                <strong>✍️ Autor(es):</strong>{" "}
+                                                {selectedDocumento.documento_autors
+                                                    .map((a) => a.autor?.nombre)
+                                                    .filter(Boolean)
+                                                    .join(", ")}
+                                            </p>
+                                        )}
+
+                                        {/* Mostrar carrera solo si NO es libro */}
+                                        {selectedDocumento.tipo_doc?.nombre !== "libro" && (
+                                            <p>
+                                                <strong>🎓 Carrera:</strong>{" "}
+                                                {selectedDocumento.carrera?.nombre || "N/A"}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-center text-muted">Cargando datos...</p>
+                            )}
+                        </div>
+                        {/* Footer */}
+                        <div className="modal-footer">
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                data-bs-dismiss="modal"
+                            >
+                                Cerrar
+                            </button>
                         </div>
                     </div>
                 </div>

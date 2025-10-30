@@ -7,7 +7,7 @@ const Sanciones = () => {
   const [sancionData, setSancionData] = useState({
     tipo_sancion: "",
     descripcion: "",
-    fecha_inicio: "",
+    fecha_inicio: new Date().toISOString().split("T")[0], // 📅 Fecha de hoy en formato YYYY-MM-DD
     fecha_fin: "",
   });
   const [estudiantes, setEstudiantes] = useState([]);
@@ -137,12 +137,14 @@ const Sanciones = () => {
   // Filtrado historial
   const historialFiltrado = historial.filter((h) => {
     const nombre = String(h.sancion?.persona?.nombre || "").toLowerCase();
+    const sancionn = String(h.sancion?.tipo_sancion || "").toLowerCase();
     const motivo = String(h.motivo_levantamiento || "").toLowerCase();
 
     if (!qHist) return true;
     return (
       nombre.includes(qHist) ||
-      motivo.includes(qHist)
+      motivo.includes(qHist) ||
+      sancionn.includes(qHist) 
     );
   });
 
@@ -387,7 +389,7 @@ const Sanciones = () => {
                   <input
                     type="date"
                     className="form-control"
-                    value={sancionData.fecha_inicio}
+                    value={sancionData.fecha_inicio || new Date().toISOString().split("T")[0]}
                     onChange={(e) =>
                       setSancionData({
                         ...sancionData,
@@ -395,6 +397,7 @@ const Sanciones = () => {
                       })
                     }
                   />
+
                 </div>
                 <div className="col">
                   <label className="form-label">Fin</label>

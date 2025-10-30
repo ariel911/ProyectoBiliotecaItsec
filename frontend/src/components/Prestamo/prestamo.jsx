@@ -26,7 +26,7 @@ const prestamo = () => {
     const [sancionData, setSancionData] = useState({
         tipo_sancion: '',
         descripcion: '',
-        fecha_inicio: '',
+        fecha_inicio: new Date().toISOString().split("T")[0], // 📅 Fecha de hoy en formato YYYY-MM-DD
         fecha_fin: '',
         estado: '',
     });
@@ -46,6 +46,9 @@ const prestamo = () => {
     const [fecha_prestamo, setFecha_prestamo] = useState('');
     const [estadoDocumento, setEstadoDocumento] = useState('');
     const [pres, setPres] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [prestamoSeleccionado, setPrestamoSeleccionado] = useState(null);
+    const [fechaFin, setFechaFin] = useState("");
     //upadte const update
     useEffect(() => {
         // Detectar cuando se muestra una nueva pestaña de Bootstrap
@@ -99,9 +102,6 @@ const prestamo = () => {
         const res = await axios({
             url: "http://localhost:8000/api/documento",
             method: "GET",
-            /*   headers: {
-                  Authorization: `Bearer ${token}`,
-              }, */
         });
 
         setdocumentos(res.data.data.documentos);
@@ -112,9 +112,6 @@ const prestamo = () => {
         const res = await axios({
             url: "http://localhost:8000/api/persona",
             method: "GET",
-            /* headers: {
-                Authorization: `Bearer ${token}`,
-            }, */
         });
         setEstudiantes(res.data.data.personas);
     };
@@ -124,13 +121,19 @@ const prestamo = () => {
         if (selectedOption['sancion'] == null) {
             try {
                 // Buscar la primera reserva activa de la persona seleccionada
-
-                const reservaPersona = reservas.find(
-                    reserva => reserva.persona.id === selectedUser.persona.id && reserva.estado === 1
+                const prestamoActivo = prestamos.find(
+                    (p) => p.persona?.id == selectedOption['value'] && p.estado == 1
                 );
-
+                if (prestamoActivo) {
+                    swal({
+                        title: "Préstamo no permitido",
+                        text: "La persona ya tiene un préstamo activo.",
+                        icon: "warning",
+                        button: "Ok",
+                    });
+                    return; // 🚫 Evita continuar con el préstamo
+                }
                 // Si hay una reserva activa, darla de baja
-
                 if (reservaPersona) {
                     await axios({
                         url: `http://localhost:8000/reservas/reserva/baja/${reservaPersona.id}`,
@@ -231,6 +234,22 @@ const prestamo = () => {
     const handlePrestamo = async () => {
         if (selectedOption['sancion'] == null) {
             try {
+                // 🔍 Verificar si la persona ya tiene un préstamo activo
+                const prestamoActivo = prestamos.find(
+                    (p) => p.persona?.id == selectedOption['value'] && p.estado == 1
+                );
+
+                if (prestamoActivo) {
+                    swal({
+                        title: "Préstamo no permitido",
+                        text: "La persona ya tiene un préstamo activo.",
+                        icon: "warning",
+                        button: "Ok",
+                    });
+                    return; // 🚫 Evita continuar con el préstamo
+                }
+
+                // 🔍 Verificar cantidad disponible
                 if (selectedUser.cantidad > 0) {
                     const lendingData = {
                         fecha_prestamo: fecha_prestamo,
@@ -242,18 +261,13 @@ const prestamo = () => {
                         personaId: selectedOption['value'],
                         documentoId: selectedUser.id,
                     };
-                    // Send the lending request to the server
-                    console.log(lendingData)
-                    await axios({
-                        url: 'http://localhost:8000/api/prestamo',
-                        method: 'POST',
 
-                        data: lendingData,
-                    });
+                    await axios.post('http://localhost:8000/api/prestamo', lendingData);
+
                     setPrestamoData({
                         fecha_devolver: '',
                         observaciones: '',
-                        garantia: ''
+                        garantia: '',
                     });
                     setSelectedUser(null);
                     setSelectedOption('');
@@ -261,39 +275,35 @@ const prestamo = () => {
                     handleGetUsers();
 
                     swal({
-                        title: "Documento prestado con Exito!",
-
+                        title: "Documento prestado con éxito!",
                         icon: "success",
                         button: "Ok",
                     });
                 } else {
                     swal({
-                        title: "Ya no se tiene Ejemplares!",
-                        text: "La cantidad de ejemplares que se tiene es 0",
+                        title: "Ya no se tiene ejemplares!",
+                        text: "La cantidad disponible es 0.",
                         icon: "error",
                         button: "Ok",
                     });
                 }
             } catch (error) {
-
                 console.error(error);
                 swal({
-                    title: "Error al prestar Documento!",
+                    title: "Error al prestar documento!",
                     icon: "error",
                     button: "Ok",
                 });
             }
         } else {
             swal({
-                title: "Error al prestar ",
-                text: "El Estudiante se encuentra sancionado!",
+                title: "Error al prestar",
+                text: "El estudiante se encuentra sancionado!",
                 icon: "error",
                 button: "Ok",
             });
         }
     };
-
-    //react select y su buscador
 
     // Genera las opciones
     const options = estudiantes?.filter((estudiante) => estudiante.estado === 1).map((estudiante) => ({
@@ -309,18 +319,6 @@ const prestamo = () => {
         setSelectedOption(option);
     };
 
-    function generarClaveUnica() {
-        const caracteres = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        const longitud = 8;
-        let clave = '';
-
-        for (let i = 0; i < longitud; i++) {
-            const indice = Math.floor(Math.random() * caracteres.length);
-            clave += caracteres.charAt(indice);
-        }
-
-        return clave;
-    }
     //buscador
     var idx = lunr(function () {
         this.field('id')
@@ -510,6 +508,53 @@ const prestamo = () => {
             document.getElementById("modalQuitarSancion")
         ).show();
     };
+    // Función para actualizar solo la fecha fin
+    const handleOpenModal = (prestamo) => {
+        setPrestamoSeleccionado(prestamo);
+
+        setFechaFin(prestamo.fecha_devolucion || "");
+        setModalVisible(true);
+    };
+
+    // 🔹 Cerrar modal
+    const handleCloseModal = () => {
+        setModalVisible(false);
+        setPrestamoSeleccionado(null);
+    };
+
+    // 🔹 Ampliar préstamo (solo actualizar fecha_fin)
+    const handleAmpliar = async (prestamo) => {
+        if (!fechaFin) {
+            alert("⚠️ Debes seleccionar una nueva fecha de fin.");
+            return;
+        }
+
+        if (fechaFin <= prestamo.fecha_prestamo) {
+             swal("❌ La nueva fecha debe ser posterior a la fecha de inicio.", "", "error");
+            return;
+        }
+
+        try {
+            const response = await axios.put(
+                `http://localhost:8000/api/prestamo/ampliar/${prestamo.id}`,
+                { fecha_devolucion: fechaFin }
+            );
+
+            if (response.data.success) {
+                swal({
+                    title: "¡Fecha ampliada correctamente!",
+                    icon: "success",
+                    button: "Ok",
+                });
+                handlePrestamo();
+                handleGetUsers();
+                handleCloseModal();
+            }
+        } catch (error) {
+            console.error(error);
+            alert("❌ Error al ampliar el préstamo");
+        }
+    };
 
     return <div className="container-fluid prestamos mt-4">
         <h2 className="text-center mb-4 fw-bold text-primary">📚 Gestión de Préstamos</h2>
@@ -553,6 +598,7 @@ const prestamo = () => {
                             <tr>
                                 <th>#</th>
                                 <th>Título</th>
+                                <th>Descripción</th>
                                 <th>Autores</th>
                                 <th>Cantidad</th>
                                 <th>Tipo</th>
@@ -565,6 +611,7 @@ const prestamo = () => {
                                 <tr key={i}>
                                     <td>{i + 1}</td>
                                     <td>{doc.titulo}</td>
+                                    <td>{doc.descripcion}</td>
                                     <td>
                                         {doc.documento_autors.map((a, idx) => (
                                             <span key={idx}>
@@ -639,6 +686,12 @@ const prestamo = () => {
                                                     onClick={() => setSelectedPrestamo(p)}
                                                 >
                                                     Sancionar
+                                                </button>
+                                                <button
+                                                    className="btn btn-warning btn-sm"
+                                                    onClick={() => handleOpenModal(p)}
+                                                >
+                                                    ✏️ Ampliar
                                                 </button>
                                             </td>
                                         </tr>
@@ -916,15 +969,18 @@ const prestamo = () => {
                         </div>
                         <div className="modal-body">
                             <form>
-                                <div className="mb-3">
-                                    <label className="form-label">Fecha Préstamo</label>
-                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly />
+                                <div className='row'>
+                                    <div className="mb-3 col">
+                                        <label className="form-label">Fecha Préstamo</label>
+                                        <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly />
+                                    </div>
+                                    <div className="mb-3 col">
+                                        <label className="form-label">Fecha Devolver</label>
+                                        <input type="datetime-local" className="form-control" value={prestamoData.fecha_devolver}
+                                            onChange={e => setPrestamoData({ ...prestamoData, fecha_devolver: e.target.value })} />
+                                    </div>
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Fecha Devolver</label>
-                                    <input type="datetime-local" className="form-control" value={prestamoData.fecha_devolver}
-                                        onChange={e => setPrestamoData({ ...prestamoData, fecha_devolver: e.target.value })} />
-                                </div>
+
                                 <div className="mb-3">
                                     <label className="form-label">Observaciones</label>
                                     <input type="text" className="form-control" value={prestamoData.observaciones}
@@ -1000,16 +1056,19 @@ const prestamo = () => {
                                     <textarea className="form-control" rows="3" value={sancionData.descripcion}
                                         onChange={e => setSancionData({ ...sancionData, descripcion: e.target.value })}></textarea>
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Fecha Inicio</label>
-                                    <input type="date" className="form-control" value={sancionData.fecha_inicio}
-                                        onChange={e => setSancionData({ ...sancionData, fecha_inicio: e.target.value })} />
+                                <div className='row'>
+                                    <div className="mb-3 col">
+                                        <label className="form-label">Fecha Inicio</label>
+                                        <input type="date" className="form-control" value={sancionData.fecha_inicio}
+                                            onChange={e => setSancionData({ ...sancionData, fecha_inicio: e.target.value })} />
+                                    </div>
+                                    <div className="mb-3 col">
+                                        <label className="form-label">Fecha Fin</label>
+                                        <input type="date" className="form-control" value={sancionData.fecha_fin}
+                                            onChange={e => setSancionData({ ...sancionData, fecha_fin: e.target.value })} />
+                                    </div>
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Fecha Fin</label>
-                                    <input type="date" className="form-control" value={sancionData.fecha_fin}
-                                        onChange={e => setSancionData({ ...sancionData, fecha_fin: e.target.value })} />
-                                </div>
+
                             </form>
                         </div>
                         <div className="modal-footer">
@@ -1021,6 +1080,92 @@ const prestamo = () => {
             </div>
 
         </div>
+
+        {/* Modal Fecha ampliar */}
+        {/* Modal para ampliar préstamo */}
+        {modalVisible && prestamoSeleccionado && (
+            <div
+                className="modal fade show"
+                style={{ display: "block", backgroundColor: "rgba(0,0,0,0.4)" }}
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content shadow">
+                        <div className="modal-header bg-primary text-white">
+                            <h5 className="modal-title fw-bold">📘 Ampliar Préstamo</h5>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={handleCloseModal}
+                            ></button>
+                        </div>
+
+                        <div className="modal-body">
+                            {/* Estudiante */}
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold">👤 Estudiante</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={prestamoSeleccionado.persona?.nombre || ""}
+                                    readOnly
+                                />
+                            </div>
+
+                            {/* Documento */}
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold">📚 Documento</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={prestamoSeleccionado.documento?.titulo || ""}
+                                    readOnly
+                                />
+                            </div>
+
+                            {/* Fecha inicio */}
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold">📅 Fecha de inicio</label>
+                                <input
+                                    type="datetime-local"
+                                    className="form-control"
+                                    value={
+                                        prestamoSeleccionado?.fecha_prestamo
+                                            ? new Date(prestamoSeleccionado.fecha_prestamo)
+                                                .toISOString()
+                                                .slice(0, 16) // ✅ formato "YYYY-MM-DDTHH:MM"
+                                            : ""
+                                    }
+                                    readOnly
+                                />
+                            </div>
+
+                            {/* Nueva fecha fin */}
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold">📅 Nueva fecha de fin</label>
+                                <input
+                                    type="datetime-local"
+                                    className="form-control"
+                                    value={fechaFin}
+                                    onChange={(e) => setFechaFin(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={handleCloseModal}>
+                                Cancelar
+                            </button>
+                            <button
+                                className="btn btn-success"
+                                onClick={() => handleAmpliar(prestamoSeleccionado)}
+                            >
+                                💾 Guardar cambios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
 
 
