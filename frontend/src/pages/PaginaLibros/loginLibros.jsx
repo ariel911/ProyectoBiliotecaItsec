@@ -6,7 +6,7 @@ import {useNavigate} from 'react-router-dom'
 
 const Login = () => {
   const [email, setEmail] = useState('');
-  const [ci, setCi] = useState('');
+  const [clave, setClave] = useState('');
   const [error, setError] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate()
@@ -17,7 +17,7 @@ const Login = () => {
       const res = await axios.get("http://localhost:8000/api/persona");
       const personas = res.data.data.personas;
 
-      const persona = personas.find(p => p.correo === email && p.ci.toString() === ci);
+      const persona = personas.find(p => p.correo === email && p.clave.toString() === clave);
 
       if (persona) {
         setIsLoggedIn(true);
@@ -66,8 +66,8 @@ const Login = () => {
               <input
                 type="password"
                 className="form-control"
-                value={ci}
-                onChange={(e) => setCi(e.target.value)}
+                value={clave}
+                onChange={(e) => setClave(e.target.value)}
                 required
               />
             </div>

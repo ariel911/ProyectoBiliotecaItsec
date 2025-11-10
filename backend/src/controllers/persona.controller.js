@@ -9,7 +9,7 @@ module.exports = {
     try {
       const personas = await models.persona.findAll({
         model: models.persona,
-        attributes: ['id', 'nombre', 'correo', 'ci', 'celular', 'estado'],
+        attributes: ['id', 'nombre','clave', 'correo', 'ci', 'celular', 'estado'],
         include: [{
           model: models.persona_carrera,
           include: [{
@@ -44,12 +44,14 @@ module.exports = {
 
   crear: async (req, res) => {
     try {
-      const { nombre, correo, ci, celular, estado, tipoPersonaId } = req.body;
+      const { nombre, correo, ci, celular, estado, tipoPersonaId,clave,usuarioId} = req.body;
 
       const persona = await models.persona.create({
         nombre,
         correo,
         ci,
+        usuarioId,
+        clave,
         celular,
         estado,
         // Asocia el persona con un carrera

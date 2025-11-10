@@ -55,6 +55,7 @@ module.exports = (sequelize, DataTypes) => {
     Sancion.hasMany(models.sancion_historial)
     Sancion.belongsTo(models.prestamo)
     Sancion.belongsTo(models.persona)
+    Sancion.belongsTo(models.usuario)
   }
 
   return Sancion

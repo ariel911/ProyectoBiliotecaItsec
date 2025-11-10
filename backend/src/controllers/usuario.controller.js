@@ -2,13 +2,14 @@
 
 const models = require("../database/models/index");
 const { Op } = require('sequelize');
-const { encrypt } = require('../helpers/handleBcrypt')
+const { encrypt } = require('../helpers/handleBcrypt');
+const usuario = require("../database/models/usuario");
 module.exports = {
   listar: async (req, res) => {
     try {
       const usuarios = await models.usuario.findAll({
         model: models.usuario,
-        attributes: ['id', 'nombre', 'correo', 'clave', 'estado'],
+        attributes: ['id', 'nombre', 'correo', 'clave', 'estado','imagen','ci','user_name'],
         include: [{
           model: models.rol,
           attributes: ['id', 'nombre_rol', 'estado'],

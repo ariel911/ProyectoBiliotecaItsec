@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
         fecha_devuelta: {
             type: DataTypes.DATE,
         },
-        
+
         createdAt: { // fecha de creacion
             type: DataTypes.DATE, // tipo de dato
             field: 'created_at', // nombre de la columna
@@ -47,6 +47,7 @@ module.exports = (sequelize, DataTypes) => {
     Devolucion.associate = models => {
         // aca se relacionan las tablas de la base de datos
         Devolucion.belongsTo(models.prestamo)
+        Devolucion.belongsTo(models.usuario)
     }
 
     return Devolucion

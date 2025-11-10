@@ -9,7 +9,7 @@ module.exports = {
       models.tipo_doc.findOrCreate({
         where: { id: 1 },
         defaults: {
-          nombre: 'Proyecto de grado',
+          nombre: 'Proyecto',
           estado: 1, // Activo
         }
       }),

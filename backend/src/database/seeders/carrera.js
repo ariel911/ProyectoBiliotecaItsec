@@ -23,7 +23,21 @@ module.exports = {
       models.carrera.findOrCreate({
         where: { id: 3 },
         defaults: {
-          nombre: 'Contaduria General',
+          nombre: 'Contaduría General',
+          estado: 1, // Activo
+        }
+      }),
+        models.carrera.findOrCreate({
+        where: { id: 4 },
+        defaults: {
+          nombre: 'Turismo',
+          estado: 1, // Activo
+        }
+      }),
+        models.carrera.findOrCreate({
+        where: { id: 5 },
+        defaults: {
+          nombre: 'Secretariado Ejecutivo',
           estado: 1, // Activo
         }
       }),

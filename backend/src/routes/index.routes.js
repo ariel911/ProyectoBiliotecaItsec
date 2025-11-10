@@ -15,7 +15,6 @@ const sancionRoutes = require("../routes/sancion.routes") // importar el archivo
 const sancionHistorialRoutes = require("../routes/sancion_historial.routes") // importar el archivo de rutas de sancion historial
 const personaRoutes = require("../routes/persona.routes") // importar el archivo de rutas de estudiante
 const autorRoutes = require("../routes/autor.routes") // importar el archivo de rutas de autor
-const formatoRoutes = require("../routes/formato.routes") // importar el archivo de rutas de autor
 const documentoRoutes = require("./documento.routes") // importar el archivo de rutas de documentos
 const reservaRoutes= require("./reserva.routes")
 const prestamoRoutes= require("./prestamo.routes")
@@ -37,7 +36,6 @@ const rutas_init = () => { // aca se ponen todas las rutas que existen
   router.use("/sancion_historial", sancionHistorialRoutes) // para acceder a las rutas de sancion de la api siempre deberá empezar con /sancion historial
   router.use("/persona", personaRoutes) // para acceder a las rutas de estudiante de la api siempre deberá empezar con /estudiante
   router.use("/autor", autorRoutes) // para acceder a las rutas de autor de la api siempre deberá empezar con /autor
-  router.use("/formato", formatoRoutes) // para acceder a las rutas de formato de la api siempre deberá empezar con /formato
   router.use("/documento", documentoRoutes) // para acceder a las rutas de documento de la api siempre deberá empezar con /documento
   router.use("/prestamo", prestamoRoutes)
   router.use("/devolucion", devolucionRoutes)

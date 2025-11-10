@@ -73,10 +73,10 @@ function Login({ addToken, addUsuario }) {
         {error && <ErrorMessage message={error} />}
         <form className="needs-validation" onSubmit={handleSubmit}>
           <div className="form-group was-validated">
-            <label className="form-label" htmlFor="email">Correo</label>
-            <input className="form-control" type="email" name='correo' onChange={handleInputChange} value={datos.correo} id="email" required></input>
+            <label className="form-label" htmlFor="usuario">Usuario</label>
+            <input className="form-control" type="text" name='user_name' onChange={handleInputChange} value={datos.user_name} id="user" required></input>
             <div className="invalid-feedback">
-              Please enter your email address
+              Please enter your user name
             </div>
           </div>
           <div className="form-group was-validated">

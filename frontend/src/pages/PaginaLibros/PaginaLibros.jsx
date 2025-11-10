@@ -5,6 +5,7 @@ import lunr from "lunr";
 import "./PaginaLibros.css";
 import logo from "../../assets/logo2.png";
 import imagenCircular from "../../assets/imgCirular.webp";
+import { useNavigate } from "react-router-dom";
 
 const PaginaLibros = () => {
     const [documentos, setDocumentos] = useState([]);
@@ -13,12 +14,13 @@ const PaginaLibros = () => {
     const [modalType, setModalType] = useState(null); // "detalle" o "reserva"
     const [fecha_reserva, setFecha_reserva] = useState("");
     const [fecha_validez, setFecha_validez] = useState("");
-
+    const [reservas, setReservas] = useState([]);
     const nombrePersona = localStorage.getItem("nombrePersona");
     const personaId = localStorage.getItem("idPersona");
-
+    const navigate = useNavigate();
     useEffect(() => {
         fetchDocumentos();
+        obtenerReservas()
         const getCurrentDateTime = (daysToAdd = 0) => {
             const now = new Date();
             now.setDate(now.getDate() + daysToAdd);
@@ -27,7 +29,14 @@ const PaginaLibros = () => {
         setFecha_reserva(getCurrentDateTime());
         setFecha_validez(getCurrentDateTime(1));
     }, []);
-
+    const obtenerReservas = async () => {
+        try {
+            const response = await axios.get(`http://localhost:8000/reservas/reserva`);
+            setReservas(response.data.data.reserva);
+        } catch (error) {
+            console.error("Error al cargar reservas:", error);
+        }
+    };
     const fetchDocumentos = async () => {
         try {
             const { data } = await axios.get("http://localhost:8000/api/documento");
@@ -56,7 +65,6 @@ const PaginaLibros = () => {
                     autor: doc.documento_autors?.[0]?.autor?.nombre || "",
                     tipo_doc: doc.tipo_doc?.nombre || "",
                     area: doc.area?.nombre || "",
-                    formato: doc.formato?.nombre || "",
                     carrera: doc.carrera?.nombre || "",
                 });
             });
@@ -117,14 +125,59 @@ const PaginaLibros = () => {
 
             swal("¡Reserva exitosa!", "Tu documento ha sido reservado.", "success");
             fetchDocumentos();
+            obtenerReservas();
+
             setModalType(null);
         } catch (error) {
             console.error(error);
             swal("Error al reservar el documento", "", "error");
         }
     };
+    // Cerrar sesión
+    const handleLogOut = () => {
+        localStorage.removeItem("nombrePersona");
+        localStorage.removeItem("idPersona");
+        navigate("/login_biblioteca");
+    };
+    const handleCancelarReserva = async (reserva) => {
+        swal({
+            title: "¿Cancelar reserva?",
+            text: `¿Estás seguro de cancelar la reserva del libro "${reserva.documento.titulo}"?`,
+            icon: "warning",
+            buttons: ["No", "Sí, cancelar"],
+            dangerMode: true,
+        }).then(async (willCancel) => {
+            if (willCancel) {
+                try {
+                    // Petición al backend para dar de baja la reserva
+                    await axios({
+                        url: `http://localhost:8000/reservas/reserva/cancelar/${reserva.id}`,
+                        method: "PUT",
+                        data: { estado: 0 },
+                    });
 
+                    // Refrescar datos
+                    obtenerReservas();
+                    fetchDocumentos();
 
+                    swal({
+                        title: "Reserva cancelada",
+                        text: "La reserva fue cancelada correctamente y el libro ha sido actualizado.",
+                        icon: "success",
+                        button: "Ok",
+                    });
+                } catch (error) {
+                    console.error(error);
+                    swal({
+                        title: "Error",
+                        text: "No se pudo cancelar la reserva.",
+                        icon: "error",
+                        button: "Ok",
+                    });
+                }
+            }
+        });
+    };
     const Modal = () => {
         if (!selectedDocumento || !modalType) return null;
 
@@ -174,7 +227,7 @@ const PaginaLibros = () => {
 
                                         <p>
                                             <strong>📅 Año de edición:</strong>{" "}
-                                            {selectedDocumento?.anio_edicion?.slice(0, 10) || "Sin especificar"}
+                                            {selectedDocumento?.anio?.slice(0, 10) || "Sin especificar"}
                                         </p>
 
                                         <p>
@@ -349,9 +402,7 @@ const PaginaLibros = () => {
                                 </a>
                             </li>
                             <li>
-                                <a href="/ac" className="dropdown-item text-danger">
-                                    🔒 Cerrar sesión
-                                </a>
+                                <button className="nav-link text-start btn text-danger p-3" onClick={handleLogOut}>Cerrar sesión</button>
                             </li>
                         </ul>
                     </div>
@@ -378,6 +429,11 @@ const PaginaLibros = () => {
                     <li className="nav-item">
                         <a className="nav-link" data-bs-toggle="tab" href="#proyectos">
                             🎓 Documentos Académicos
+                        </a>
+                    </li>
+                    <li className="nav-item">
+                        <a className="nav-link" data-bs-toggle="tab" href="#reservas">
+                            📅 Mis Reservas
                         </a>
                     </li>
 
@@ -422,8 +478,77 @@ const PaginaLibros = () => {
                 </div>
             </div>
 
+
+            {/* NUEVA PESTAÑA: MIS RESERVAS */}
+            <div className="tab-pane fade" id="reservas">
+                <div className="row g-3">
+                    {reservas && reservas.length > 0 ? (
+                        reservas
+                            // 🔹 Filtrar solo las reservas del usuario logeado
+                            .filter((reserva) => reserva.persona?.id == personaId)
+                            // 🔹 Ordenar: activas primero
+                            .sort((a, b) => b.estado - a.estado)
+                            .map((reserva) => (
+                                <div key={reserva.id} className="col-md-6 col-lg-3">
+                                    <div
+                                        className={`card shadow-sm border-0 p-3 m-2 h-100 w-100 transition ${reserva.estado === 1
+                                            ? "bg-primary bg-opacity-10 border border-primary"
+                                            : "bg-white border border-2 border-light text-muted"
+                                            }`}
+                                    >
+                                        <h5 className="fw-bold mb-2">
+                                            📘 {reserva.documento?.titulo || "Sin título"}
+                                        </h5>
+
+                                        <p className="mb-1">
+                                            <strong>Autor:</strong>{" "}
+                                            {`${reserva.documento.documento_autors[0]?.autor?.nombre || ''}${reserva.documento.documento_autors[1] ? ', ' + reserva.documento.documento_autors[1]?.autor?.nombre : ''}`}
+                                        </p>
+
+                                        <p className="mb-1">
+                                            <strong>Fecha reserva:</strong>{" "}
+                                            {new Date(reserva.fecha_reserva).toLocaleDateString()}
+                                        </p>
+
+                                        <p className="mb-2">
+                                            <strong>Estado:</strong>{" "}
+                                            {reserva.estado === 1 ? (
+                                                <span className="text-success fw-semibold">
+                                                    Activa ✅
+                                                </span>
+                                            ) : (
+                                                <span className="text-secondary fw-semibold">
+                                                    Finalizada 🕓
+                                                </span>
+                                            )}
+                                        </p>
+
+                                        {/* 🔹 Botón para cancelar reservas activas */}
+                                        {reserva.estado === 1 && (
+                                            <button
+                                                className="btn btn-outline-danger btn-sm mt-2 fw-semibold w-100"
+                                                onClick={() => handleCancelarReserva(reserva)}
+                                            >
+                                                ❌ Cancelar reserva
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                    ) : (
+                        <p className="text-center text-muted mt-4">
+                            No tienes reservas registradas.
+                        </p>
+                    )}
+                </div>
+            </div>
+
+
+
             <Modal />
-        </div>
+
+        </div >
+
     );
 };
 

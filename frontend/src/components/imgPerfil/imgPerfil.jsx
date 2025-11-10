@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./imgPerfil.css";
 import imagenCircular from "../../assets/imgCirular.webp";
+import ariel from "../../assets/ariel.jpeg";
 
 const ImgPerfil = () => {
   const navigate = useNavigate();
@@ -14,12 +15,14 @@ const ImgPerfil = () => {
     nombre: "",
     correo: "",
     clave: "",
+    imagen: "",
   });
   useEffect(() => {
     if (usuario) {
       setFormData({
         nombre: usuario.nombre || "",
         correo: usuario.correo || "",
+        imagen: usuario.imagen || "",
         clave: "",
       });
     }
@@ -69,11 +72,12 @@ const ImgPerfil = () => {
     localStorage.removeItem("Rol");
     navigate("/");
   };
+  console.log("r",formData.imagen)
   return (
     <>
       <div className="elementoLink">
         <img
-          src={imagenCircular}
+          src={`${formData.imagen}`}
           className="imagenCircular"
           onClick={() => setModalOpen(true)}
           alt="Perfil"

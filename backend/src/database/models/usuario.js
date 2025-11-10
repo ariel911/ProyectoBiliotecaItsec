@@ -11,18 +11,30 @@ module.exports = (sequelize, DataTypes) => {
     },
     nombre: { // nombre de la columna
       type: DataTypes.STRING, // tipo de dato
-      allowNull: false 
+      allowNull: false
+    },
+    user_name: {
+      type: DataTypes.STRING, // tipo de dato
+      allowNull: false
     },
     correo: {
       type: DataTypes.STRING,
-      allowNull: false 
+      allowNull: true
+    },
+    imagen: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    ci: {
+      type: DataTypes.STRING,
+      allowNull: true
     },
     clave: {
       type: DataTypes.STRING,
-      allowNull: false 
+      allowNull: true
     },
-    estado:{
-      type:DataTypes.INTEGER,
+    estado: {
+      type: DataTypes.INTEGER,
     },
     createdAt: { // fecha de creacion
       type: DataTypes.DATE, // tipo de dato
@@ -48,8 +60,12 @@ module.exports = (sequelize, DataTypes) => {
   Usuario.associate = models => {
     // aca se relacionan las tablas de la base de datos 
     Usuario.hasMany(models.prestamo)
+    Usuario.hasMany(models.documento)
     Usuario.belongsTo(models.rol)
-
+    Usuario.hasMany(models.persona)
+    Usuario.hasMany(models.devolucion)
+    Usuario.hasMany(models.sancion)
+    Usuario.hasMany(models.sancion_historial)
   }
 
   return Usuario

@@ -17,7 +17,7 @@ const documento = () => {
     const [descripcion, setDescripcion] = useState('');
     const [ubicacion, setUbicacion] = useState('');
     const [codigo, setCodigo] = useState('');
-    const [fechaRegistro, setFechaRegistro] = useState('');
+    const [gestion, setGestion] = useState('');
     const [selectedOption, setSelectedOption] = useState('');
     //const [autores, setAutores] = useState('');
     //buscador
@@ -138,7 +138,7 @@ const documento = () => {
                     titulo: titulo,
                     cantidad: cantidad,
                     imagen: '../../assets/' + `${imagen.name}`,
-                    anio_edicion: fechaRegistro || null,
+                    anio: gestion || null,
                     descripcion: descripcion,
                     ubicacion: ubicacion || null,
                     Codigo: codigo,
@@ -162,7 +162,7 @@ const documento = () => {
             setDescripcion('');
             setUbicacion('');
             setCodigo('');
-            setFechaRegistro('');
+            setGestion('');
             setSelectedOption('');
             swal({
                 title: "documento Agregado!",
@@ -313,6 +313,10 @@ const documento = () => {
                                 <label htmlFor="codigo" className="form-label fw-semibold">Código</label>
                                 <input type="text" className="form-control" id="codigo" value={codigo} onChange={(e) => setCodigo(e.target.value)} required />
                             </div>
+                            <div className="col-md-3">
+                                <label htmlFor="gestion" className="form-label fw-semibold">Gestion</label>
+                                <input type="text" className="form-control" id="gestion" value={gestion} onChange={(e) => setGestion(e.target.value)} required />
+                            </div>
 
                             <div className="col-md-6">
                                 <label htmlFor="descripcion" className="form-label fw-semibold">Autor(es)</label>
@@ -348,10 +352,7 @@ const documento = () => {
                                     ))}
                                 </select>
                             </div>
-                            <div className="col-md-3">
-                                <label htmlFor="fechaRegistro" className="form-label fw-semibold">Fecha de registro</label>
-                                <input type="datetime-local" className="form-control" value={fechaRegistro} onChange={(e) => setFechaRegistro(e.target.value)} required />
-                            </div>
+
                             <div className="col-md-3">
                                 <label htmlFor="are" className="form-label fw-semibold">Área</label>
                                 <select className="form-select" id="are" value={are} onChange={(e) => setAre(e.target.value)}>
@@ -469,7 +470,6 @@ const documento = () => {
                                     <th>Autores</th>
                                     <th>Cantidad</th>
                                     <th>Área</th>
-                                    <th>Formato</th>
                                     <th>Acción</th>
                                 </tr>
                             </thead>
@@ -605,8 +605,8 @@ const documento = () => {
                                         </p>
 
                                         <p>
-                                            <strong>📅 Año de edición:</strong>{" "}
-                                            {selectedDocumento.anio_edicion || "Sin especificar"}
+                                            <strong>📅Gestion:</strong>{" "}
+                                            {selectedDocumento.anio || "Sin especificar"}
                                         </p>
 
                                         <p>

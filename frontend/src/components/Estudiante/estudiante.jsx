@@ -13,7 +13,7 @@ const Estudiante = ({ handleAddUser }) => {
   const [celular, setCelular] = useState('');
   const [carre, setCarre] = useState('');
   const [tipo, setTipo] = useState('');
-
+  const idUsuario = localStorage.getItem('id');
   // ---- catálogos y listas ----
   const [carreras, setCarreras] = useState([]);
   const [tipoPersonas, setTipoPersonas] = useState([]);
@@ -103,11 +103,13 @@ const Estudiante = ({ handleAddUser }) => {
     }
 
     // Si pasa las validaciones, se envía la solicitud
+    let clave2 = ci.toString();
     try {
       await axios.post('http://localhost:8000/api/persona', {
         nombre,
         correo,
         ci,
+        clave: clave2,
         celular,
         estado: 1,
         carreras: [carre],
@@ -210,9 +212,12 @@ const Estudiante = ({ handleAddUser }) => {
         const carreraEncontrada = carreras.find(
           (c) => c.nombre.toLowerCase() === (est.carrera || '').toString().toLowerCase()
         );
+        let clave2 = String(est.ci);
         return {
           ...est,
           estado: '1',
+          clave: clave2,
+          usuarioId: parseInt(idUsuario),
           tipoPersonaId: parseInt(personaId),
           carreras: carreraEncontrada ? [carreraEncontrada.id.toString()] : null,
         };
@@ -493,7 +498,7 @@ const Estudiante = ({ handleAddUser }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {searchResults.map((est, i) => est.estado == 1 && (
+                  {searchResults?.filter((d) => d.estado == 1).map((est, i) => (
                     <tr key={est.id}>
                       <td>{i + 1}</td>
                       <td>{est.nombre}</td>

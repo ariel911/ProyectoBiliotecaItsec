@@ -1,6 +1,6 @@
 
 import './ListarPrestamos.css'
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import swal from 'sweetalert';
 import lunr from 'lunr';
@@ -20,6 +20,7 @@ const prestamo = () => {
         fecha_prestamo: " ",
         fecha_devolver: " ",
         observaciones: " ",
+        persona: "",
         garantia: " ",
         estado: '',
     });
@@ -30,8 +31,12 @@ const prestamo = () => {
         fecha_fin: '',
         estado: '',
     });
-    const [searchResults, setSearchResults] = useState([]); // Almacena los resultados de la búsqueda
-    const [searchText, setSearchText] = useState('');
+    const [searchResultsDocuments, setSearchResultsDocuments] = useState([]); // Almacena los resultados de la búsqueda
+    const [searchResultsReservas, setSearchResultsReservas] = useState([]); // Almacena los resultados de la búsqueda
+    const [searchResultsPrestamos, setSearchResultsPrestamos] = useState([]); // Almacena los resultados de la búsqueda
+    const [searchTextDocuments, setSearchTextDocuments] = useState('');
+    const [searchTextPrestamos, setSearchTextPrestamos] = useState('');
+    const [searchTextReservas, setSearchTextReservas] = useState('');
     const [documentos, setdocumentos] = useState([]);
     const [selectedOption, setSelectedOption] = useState('');
     const [estudiantes, setEstudiantes] = useState([]);
@@ -50,6 +55,52 @@ const prestamo = () => {
     const [prestamoSeleccionado, setPrestamoSeleccionado] = useState(null);
     const [fechaFin, setFechaFin] = useState("");
     //upadte const update
+    const getSanciones = async () => {
+        const res = await axios.get("http://localhost:8000/api/sancion");
+        setSanciones(res.data.data.sancion);
+    };
+    //prestamos
+
+    const handleGetPrestamos = async () => {
+        const res = await axios({
+            url: 'http://localhost:8000/api/prestamo',
+            method: 'GET',
+        });
+        setPrestamos(res.data.data.prestamos);
+        setSearchResultsPrestamos(res.data.data.prestamos)
+    };
+    const handleGetUsers = async () => {
+        const res = await axios({
+            url: "http://localhost:8000/api/documento",
+            method: "GET",
+        });
+
+        setdocumentos(res.data.data.documentos);
+        setSearchResultsDocuments(res.data.data.documentos)
+    };
+
+    const handleEstudiantes = async () => {
+        const res = await axios({
+            url: "http://localhost:8000/api/persona",
+            method: "GET",
+        });
+        setEstudiantes(res.data.data.personas);
+    };
+    const handleGetReservas = async () => {
+        const res = await axios({
+            url: 'http://localhost:8000/reservas/reserva',
+            method: 'GET',
+        });
+        setReservas(res.data.data.reserva);
+        setSearchResultsReservas(res.data.data.reserva);
+    };
+    const handleGetDevoluciones = async () => {
+        const res = await axios({
+            url: "http://localhost:8000/api/devolucion",
+            method: "GET",
+        });
+        setDevoluciones(res.data.data.devolucion);
+    };
     useEffect(() => {
         // Detectar cuando se muestra una nueva pestaña de Bootstrap
         const tabs = document.querySelectorAll('#prestamoTabs a[data-bs-toggle="tab"]');
@@ -73,6 +124,8 @@ const prestamo = () => {
             });
         };
     }, []);
+
+
     useEffect(() => {
         handleGetUsers();
         handleGetReservas();
@@ -98,24 +151,42 @@ const prestamo = () => {
     const sedHandleUsuario = (usuario) => {
         setSelectedUser(usuario);
     }
-    const handleGetUsers = async () => {
-        const res = await axios({
-            url: "http://localhost:8000/api/documento",
-            method: "GET",
-        });
 
-        setdocumentos(res.data.data.documentos);
-        setSearchResults(res.data.data.documentos)
-    };
+    useEffect(() => {
+        // Escucha el evento de cambio de pestaña
+        const handleTabChange = (event) => {
+            const targetId = event.target.getAttribute("href");
 
-    const handleEstudiantes = async () => {
-        const res = await axios({
-            url: "http://localhost:8000/api/persona",
-            method: "GET",
-        });
-        setEstudiantes(res.data.data.personas);
-    };
+            switch (targetId) {
+                case "#prestar":
+                    handleGetUsers();
+                    break;
+                case "#historial":
+                    handleGetPrestamos();
+                    break;
+                case "#reservas":
+                    handleGetReservas();
+                    break;
+                case "#devolver":
+                    handleGetDevoluciones();
+                    break;
+                case "#Sancionados":
+                    getSanciones();
+                    break;
+                default:
+                    break;
+            }
+        };
 
+        // Agregar listener al evento Bootstrap
+        const tabs = document.querySelectorAll('a[data-bs-toggle="tab"]');
+        tabs.forEach(tab => tab.addEventListener("shown.bs.tab", handleTabChange));
+
+        // Limpieza al desmontar
+        return () => {
+            tabs.forEach(tab => tab.removeEventListener("shown.bs.tab", handleTabChange));
+        };
+    }, [handleGetPrestamos, handleGetReservas, handleGetDevoluciones, getSanciones, handleGetUsers]);
 
     const handlePrestamoR = async () => {
         if (selectedOption['sancion'] == null) {
@@ -134,9 +205,10 @@ const prestamo = () => {
                     return; // 🚫 Evita continuar con el préstamo
                 }
                 // Si hay una reserva activa, darla de baja
-                if (reservaPersona) {
+
+                if (selectedUser) {
                     await axios({
-                        url: `http://localhost:8000/reservas/reserva/baja/${reservaPersona.id}`,
+                        url: `http://localhost:8000/reservas/reserva/baja/${selectedUser.id}`,
                         method: "PUT",
                         data: { estado: 0 }
                     });
@@ -318,72 +390,130 @@ const prestamo = () => {
     const handleSelectChange = (option) => {
         setSelectedOption(option);
     };
-
     //buscador
-    var idx = lunr(function () {
-        this.field('id')
-        this.field('title')
-        this.field('descripcion')
-        this.field('autores')
-        this.field('tipo_doc')
-        this.field('area')
-        this.field('carrera')
+    const idx = useMemo(() => {
+        if (!documentos || documentos.length === 0) return null;
+        return lunr(function () {
+            this.ref("id");
+            this.field("title");
+            this.field("descripcion");
+            this.field("autores");
+            this.field("tipo_doc");
+            this.field("area");
+            this.field("carrera");
 
+            documentos.forEach((document) => {
+                this.add({
+                    id: document.id,
+                    title: document.titulo || "",
+                    descripcion: document.descripcion || "",
+                    autores: document.documento_autors?.[0]?.autor?.nombre || "",
+                    tipo_doc: document.tipo_doc?.nombre || "",
+                    area: document.area?.nombre || "",
+                    carrera: document.carrera?.nombre || "",
+                });
+            });
+        });
+    }, [documentos]);
 
-        documentos?.map((document, ind) =>
-            this.add({
-                "id": document.id,
-                "title": document.titulo,
-                "descripcion": document.descripcion,
-                "autores": document?.documento_autors[0]?.autor?.nombre,
-                "tipo_doc": document?.tipo_doc?.nombre,
-                "area": document?.area?.nombre,
-                "carrera": document?.carrera?.nombre,
-            })
-        );
-    })
-    const encontrado = [];
-    const handleChange = (event) => {
+    const idx3 = useMemo(() => {
+        if (!reservas || reservas.length === 0) return null;
+        return lunr(function () {
+            this.ref("id");
+            this.field("titulo");
+            this.field("nombre");
+            this.field("ci");
+            reservas.forEach((r) => {
+                this.add({
+                    id: r.id,
+                    titulo: r.documento?.titulo || "",
+                    nombre: r.persona?.nombre || "",
+                    ci: r.persona?.ci || "",
+                });
+            });
+        });
+    }, [reservas]);
+    const idx2 = useMemo(() => {
+        if (!prestamos || prestamos.length === 0) return null;
+        return lunr(function () {
+            this.ref("id");
+            this.field("titulo");
+            this.field("nombre");
+            this.field("ci");
+            this.field("fecha");
+            prestamos.forEach((p) => {
+                this.add({
+                    id: p.id,
+                    titulo: p.documento?.titulo || "",
+                    nombre: p.persona?.nombre || "",
+                    ci: p.persona?.ci || "",
+                    fecha: p.fecha_prestamo || "",
+                });
+            });
+        });
+    }, [prestamos]);
+    const handleChangeDocumentos = (event) => {
         const text = event.target.value;
-        setSearchText(text);
-        const results = simulateSearch(text);
+        setSearchTextDocuments(text);
 
-        setSearchResults(results);
-    };
-
-    const simulateSearch = (text) => {
-        // Simulación de búsqueda en base al texto ingresado
-        const aqui = idx.search(text)
-        for (let clave of aqui) {
-            const objetoEncontrado = documentos.find(objeto => objeto.id == clave.ref);
-            if (objetoEncontrado) {
-                encontrado.push(objetoEncontrado);
-            }
+        if (!idx || text.trim() === "") {
+            setSearchResultsDocuments(documentos);
+            return;
         }
-        return encontrado;
+
+        try {
+            const results = idx.search(`*${text}*`);
+            const encontrados = results
+                .map((r) => documentos.find((doc) => doc.id == r.ref))
+                .filter(Boolean);
+
+            setSearchResultsDocuments(encontrados);
+        } catch (error) {
+            console.error("Error en búsqueda Lunr (documentos):", error);
+            setSearchResultsDocuments([]);
+        }
     };
-    //prestamos
-    const handleGetPrestamos = async () => {
-        const res = await axios({
-            url: 'http://localhost:8000/api/prestamo',
-            method: 'GET',
-        });
-        setPrestamos(res.data.data.prestamos);
+    const handleChangePrestamos = (event) => {
+        const text = event.target.value;
+        setSearchTextPrestamos(text);
+
+        if (!idx2 || text.trim() === "") {
+            setSearchResultsPrestamos(prestamos);
+            return;
+        }
+        try {
+            const results = idx2.search(`*${text}*`);
+            const encontrados = results
+                .map((r) => prestamos.find((p) => p.id == r.ref))
+                .filter(Boolean);
+            setSearchResultsPrestamos(encontrados);
+        } catch (error) {
+            console.error("Error en búsqueda Lunr (prestamos):", error);
+            setSearchResultsPrestamos([]);
+        }
     };
-    const handleGetReservas = async () => {
-        const res = await axios({
-            url: 'http://localhost:8000/reservas/reserva',
-            method: 'GET',
-        });
-        setReservas(res.data.data.reserva);
+    const handleChangeReservas = (event) => {
+        const text = event.target.value;
+        setSearchTextReservas(text);
+
+        if (!idx3 || text.trim() === "") {
+            setSearchResultsReservas(reservas);
+            return;
+        }
+
+        try {
+            const results = idx3.search(`*${text}*`);
+            const encontrados = results
+                .map((r) => reservas.find((res) => res.id == r.ref))
+                .filter(Boolean);
+            setSearchResultsReservas(encontrados);
+        } catch (error) {
+            console.error("Error en búsqueda Lunr (reservas):", error);
+            setSearchResultsReservas([]);
+        }
     };
-    const handleGetDevoluciones = async () => {
-        const res = await axios({
-            url: "http://localhost:8000/api/devolucion",
-            method: "GET",
-        });
-        setDevoluciones(res.data.data.devolucion);
-    };
+
+
     const hadlePrestamo = (prest) => {
         setEstadoDocumento('');
         setPres(prest)
@@ -493,10 +623,7 @@ const prestamo = () => {
             swal("❌ Error al levantar sanción", "", "error");
         }
     };
-    const getSanciones = async () => {
-        const res = await axios.get("http://localhost:8000/api/sancion");
-        setSanciones(res.data.data.sancion);
-    };
+
     const abrirModalQuitar = (sancion) => {
         setSelectedUser(sancion);
         setQuitarData({
@@ -530,7 +657,7 @@ const prestamo = () => {
         }
 
         if (fechaFin <= prestamo.fecha_prestamo) {
-             swal("❌ La nueva fecha debe ser posterior a la fecha de inicio.", "", "error");
+            swal("❌ La nueva fecha debe ser posterior a la fecha de inicio.", "", "error");
             return;
         }
 
@@ -546,7 +673,7 @@ const prestamo = () => {
                     icon: "success",
                     button: "Ok",
                 });
-                handlePrestamo();
+                handleGetPrestamos()
                 handleGetUsers();
                 handleCloseModal();
             }
@@ -580,16 +707,15 @@ const prestamo = () => {
 
         {/* CONTENIDO DE LAS PESTAÑAS */}
         <div className="tab-content p-3 border border-top-0 bg-light rounded-bottom shadow-sm" id="myTabContent">
-
             {/* TAB - PRESTAR */}
             <div className="tab-pane fade show active" id="prestar" role="tabpanel">
                 <div className="mb-3">
                     <input
                         type="text"
                         className="form-control shadow-sm"
-                        placeholder="🔍 Buscar por título, área o tipo..."
-                        value={searchText}
-                        onChange={handleChange}
+                        placeholder="🔍 Buscar por título, autor, área o tipo..."
+                        value={searchTextDocuments}
+                        onChange={handleChangeDocumentos}
                     />
                 </div>
                 <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
@@ -607,13 +733,20 @@ const prestamo = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {searchResults.map((doc, i) => (
-                                <tr key={i}>
+                            {searchResultsDocuments?.map((doc, i) => (
+                                <tr
+                                    key={i}
+                                    className={
+                                        doc.estado === 0 || doc.cantidad === 0
+                                            ? "table-danger" // 🔴 Rojo si está inactivo o sin stock
+                                            : ""
+                                    }
+                                >
                                     <td>{i + 1}</td>
                                     <td>{doc.titulo}</td>
                                     <td>{doc.descripcion}</td>
                                     <td>
-                                        {doc.documento_autors.map((a, idx) => (
+                                        {doc?.documento_autors?.map((a, idx) => (
                                             <span key={idx}>
                                                 {a.autor?.nombre}
                                                 {idx < doc.documento_autors.length - 1 ? ", " : ""}
@@ -628,7 +761,9 @@ const prestamo = () => {
                                             className="btn btn-outline-primary btn-sm"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalPrestamo"
-                                            onClick={() => sedHandleUsuario(doc)}>
+                                            onClick={() => sedHandleUsuario(doc)}
+                                            disabled={doc.estado === 0 || doc.cantidad === 0} // 🔒 Desactiva si no se puede prestar
+                                        >
                                             Prestar
                                         </button>
                                     </td>
@@ -636,11 +771,21 @@ const prestamo = () => {
                             ))}
                         </tbody>
                     </table>
+
                 </div>
             </div>
 
             {/* TAB - PRESTAMOS */}
             <div className="tab-pane fade" id="historial" role="tabpanel">
+                <div className="mb-3">
+                    <input
+                        type="text"
+                        className="form-control shadow-sm"
+                        placeholder="🔍 Buscar préstamo por título, nombre o CI..."
+                        value={searchTextPrestamos}
+                        onChange={handleChangePrestamos}
+                    />
+                </div>
                 <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
                     <table className="table table-hover text-center align-middle">
                         <thead className="table-dark sticky-top">
@@ -654,7 +799,7 @@ const prestamo = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {prestamos.map((p, i) => {
+                            {searchResultsPrestamos?.filter((d) => d.estado == 1).map((p, i) => {
                                 const fechaDevolucion = new Date(p.fecha_devolucion);
                                 const hoy = new Date();
                                 const vencido = fechaDevolucion < hoy && p.estado === 1;
@@ -710,9 +855,9 @@ const prestamo = () => {
                     <input
                         type="text"
                         className="form-control shadow-sm"
-                        placeholder="🔍 Buscar reserva por título o persona..."
-                        value={searchText}
-                        onChange={handleChange}
+                        placeholder="🔍 Buscar reserva por título, persona o CI..."
+                        value={searchTextReservas}
+                        onChange={handleChangeReservas}
                     />
                 </div>
                 <div className="table-responsive" style={{ maxHeight: "400px", overflowY: "auto" }}>
@@ -728,7 +873,7 @@ const prestamo = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {reservas.map((r, i) => r.estado === 1 && (() => {
+                            {searchResultsReservas?.filter((d) => d.estado == 1).map((r, i) => {
                                 const fechaValidez = new Date(r.fecha_validez);
                                 const hoy = new Date();
                                 const vencida = fechaValidez < hoy;
@@ -761,7 +906,7 @@ const prestamo = () => {
                                         </td>
                                     </tr>
                                 );
-                            })())}
+                            })}
                         </tbody>
 
 
@@ -853,15 +998,18 @@ const prestamo = () => {
                         </div>
                         <div className="modal-body">
                             <form>
-                                <div className="mb-3">
-                                    <label className="form-label">Fecha Préstamo</label>
-                                    <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly />
+                                <div className='row'>
+                                    <div className="mb-3 col">
+                                        <label className="form-label">Fecha Préstamo</label>
+                                        <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly />
+                                    </div>
+                                    <div className="mb-3 col">
+                                        <label className="form-label">Fecha Devolver</label>
+                                        <input type="datetime-local" className="form-control" value={prestamoData.fecha_devolver}
+                                            onChange={e => setPrestamoData({ ...prestamoData, fecha_devolver: e.target.value })} />
+                                    </div>
                                 </div>
-                                <div className="mb-3">
-                                    <label className="form-label">Fecha Devolver</label>
-                                    <input type="datetime-local" className="form-control" value={prestamoData.fecha_devolver}
-                                        onChange={e => setPrestamoData({ ...prestamoData, fecha_devolver: e.target.value })} />
-                                </div>
+
                                 <div className="mb-3">
                                     <label className="form-label">Observaciones</label>
                                     <input type="text" className="form-control" value={prestamoData.observaciones}
@@ -971,6 +1119,16 @@ const prestamo = () => {
                             <form>
                                 <div className='row'>
                                     <div className="mb-3 col">
+                                        <label className="form-label">Nombre</label>
+                                        <input type="text" className="form-control" value={selectedUser?.persona?.nombre} readOnly />
+                                    </div>
+                                    <div className="mb-3 col">
+                                        <label className="form-label">Ci</label>
+                                        <input type="text" className="form-control" value={selectedUser?.persona?.ci} readOnly />
+                                    </div>
+                                </div>
+                                <div className='row'>
+                                    <div className="mb-3 col">
                                         <label className="form-label">Fecha Préstamo</label>
                                         <input type="datetime-local" className="form-control" value={fecha_prestamo} readOnly />
                                     </div>
@@ -980,6 +1138,7 @@ const prestamo = () => {
                                             onChange={e => setPrestamoData({ ...prestamoData, fecha_devolver: e.target.value })} />
                                     </div>
                                 </div>
+
 
                                 <div className="mb-3">
                                     <label className="form-label">Observaciones</label>
@@ -1011,6 +1170,10 @@ const prestamo = () => {
                         </div>
                         <div className="modal-body">
                             <form>
+                                {/*  <div className="mb-3">
+                                    <label className="form-label">Documento</label>
+                                    <input type="date" className="form-control" value={pres.documento?.titulo} readOnly />
+                                </div> */}
                                 <div className="mb-3">
                                     <label className="form-label">Fecha Devolución</label>
                                     <input type="date" className="form-control" value={fechaDevuelta.fecha_devuelta}

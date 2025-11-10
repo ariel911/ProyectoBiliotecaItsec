@@ -1,26 +1,34 @@
-'use strict' 
+'use strict'
 
 module.exports = (sequelize, DataTypes) => {
 
-  let Autor= sequelize.define('autor', { 
+  let Autor = sequelize.define('autor', {
     id: {
-      type: DataTypes.BIGINT, 
-      autoIncrement: true, 
-      primaryKey: true,  
-      allowNull: false 
+      type: DataTypes.BIGINT,
+      autoIncrement: true,
+      primaryKey: true,
+      allowNull: false
     },
-    nombre: { 
-      type: DataTypes.STRING, 
-      allowNull: false 
+    nombre: {
+      type: DataTypes.STRING,
+      allowNull: false
     },
-    estado:{
-        type:DataTypes.INTEGER,
+    tipo_autor: {
+      type: DataTypes.STRING,
+      allowNull: true
     },
-    createdAt: { 
-      type: DataTypes.DATE, 
-      field: 'created_at', 
-      defaultValue: DataTypes.NOW, 
-      allowNull: false 
+    correo: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    estado: {
+      type: DataTypes.INTEGER,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      field: 'created_at',
+      defaultValue: DataTypes.NOW,
+      allowNull: false
     },
     updatedAt: {
       type: DataTypes.DATE,
@@ -28,13 +36,13 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.NOW,
       allowNull: false
     },
-    deletedAt: { 
+    deletedAt: {
       type: DataTypes.DATE,
       field: 'deleted_at'
     }
   }, {
-    paranoid: true, 
-    freezeTableName: true, 
+    paranoid: true,
+    freezeTableName: true,
   })
 
   Autor.associate = models => {

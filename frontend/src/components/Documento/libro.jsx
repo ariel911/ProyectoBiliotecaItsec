@@ -123,7 +123,7 @@ const libro = () => {
                 {
                     titulo: titulo,
                     cantidad: cantidad,
-                    anio_edicion: fechaRegistro,
+                    anio: fechaRegistro,
                     descripcion: descripcion,
                     imagen: '../../assets/' + `${imagen.name}`,
                     estado: 1,
@@ -296,7 +296,7 @@ const libro = () => {
                                 </div>
                                 <div className="col-md-3">
                                     <label className="form-label fw-semibold">Año de Edición</label>
-                                    <input type="datetime-local" className="form-control" value={fechaRegistro} onChange={(e) => setFechaRegistro(e.target.value)} required />
+                                    <input type="text" className="form-control" value={fechaRegistro} onChange={(e) => setFechaRegistro(e.target.value)} required />
                                 </div>
 
                                 <div className="col-md-6">
@@ -560,7 +560,7 @@ const libro = () => {
 
                                     <p>
                                         <strong>📅 Año de edición:</strong>{" "}
-                                        {selectedDocumento.anio_edicion || "Sin especificar"}
+                                        {selectedDocumento.anio || "Sin especificar"}
                                     </p>
 
                                     <p>

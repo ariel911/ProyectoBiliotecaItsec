@@ -124,7 +124,7 @@ const ReporteDocumentos = () => {
             { header: 'ID', key: 'id', width: 10 },
             { header: 'Título', key: 'titulo', width: 30 },
             { header: 'Cantidad', key: 'cantidad', width: 10 },
-            { header: 'Año de Edición', key: 'anio_edicion', width: 15 },
+            { header: 'Año de Edición', key: 'anio', width: 15 },
             { header: 'Ubicación', key: 'ubicacion', width: 20 },
             { header: 'Descripción', key: 'descripcion', width: 30 },
             { header: 'Estado', key: 'estado', width: 15 },
@@ -140,7 +140,7 @@ const ReporteDocumentos = () => {
                 id: index + 1,
                 titulo: doc.titulo,
                 cantidad: doc.cantidad,
-                anio_edicion: new Date(doc.anio_edicion).toLocaleDateString(),
+                anio: doc.anio,
                 ubicacion: doc.ubicacion,
                 descripcion: doc.descripcion,
                 estado: doc.estado === 1 ? 'Activo' : doc.estado === 0 ? 'Inactivo' : 'Eliminado',
@@ -474,7 +474,6 @@ const ReporteDocumentos = () => {
                                     <th>Código</th>
                                     <th>Área</th>
                                     <th>Carrera</th>
-                                    <th>Formato</th>
                                     <th>Tipo</th>
                                     <th>Autor(es)</th>
                                 </tr>
@@ -485,7 +484,7 @@ const ReporteDocumentos = () => {
                                         <td>{doc.id}</td>
                                         <td>{doc.titulo}</td>
                                         <td>{doc.cantidad}</td>
-                                        <td>{new Date(doc.anio_edicion).toLocaleDateString()}</td>
+                                        <td>{doc.anio}</td>
                                         <td>{doc.ubicacion}</td>
                                         <td>{doc.descripcion}</td>
                                         <td>
@@ -507,7 +506,6 @@ const ReporteDocumentos = () => {
                                         <td>{doc.codigo}</td>
                                         <td>{doc?.area?.nombre}</td>
                                         <td>{doc?.carrera?.nombre}</td>
-                                        <td>{doc?.formato?.nombre}</td>
                                         <td>{doc.tipo_doc.nombre}</td>
                                         <td>{doc.documento_autors.map((da) => da.autor.nombre).join(", ")}</td>
                                     </tr>

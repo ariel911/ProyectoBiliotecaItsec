@@ -14,7 +14,6 @@ module.exports = {
         sanciones: models.sancion,
         personas: models.persona,
         autores: models.autor,
-        formatos: models.formato,
         documentos: models.documento,
         reservas: models.reserva,
         prestamos: models.prestamo,

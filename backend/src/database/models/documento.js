@@ -17,25 +17,25 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    anio_edicion: {
-      type: DataTypes.DATE,
-      allowNull: false
+    anio: {
+      type: DataTypes.STRING,
+      allowNull: true
     },
     descripcion: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     Codigo: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     ubicacion: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     imagen: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     estado: {
       type: DataTypes.INTEGER,
@@ -67,12 +67,11 @@ module.exports = (sequelize, DataTypes) => {
     Documento.hasMany(models.prestamo)
     Documento.hasMany(models.reserva)
     Documento.hasMany(models.documento_autor)
-
     //llaves foraneas en la tabla documento
     Documento.belongsTo(models.area)
     Documento.belongsTo(models.tipo_doc)
     Documento.belongsTo(models.carrera)
-    Documento.belongsTo(models.formato)
+    Documento.belongsTo(models.usuario)
 
   }
 

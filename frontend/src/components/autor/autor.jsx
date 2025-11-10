@@ -16,7 +16,7 @@ const GestionBiblioteca = () => {
     getAreas();
     getBajasArea();
     getAutores();
-    getBajasAutores();
+/*     getBajasAutores(); */
   }, []);
 
   const getAreas = async () => {
@@ -81,10 +81,10 @@ const GestionBiblioteca = () => {
     setAutores(res.data.data.autores);
   };
 
-  const getBajasAutores = async () => {
+/*   const getBajasAutores = async () => {
     const res = await axios.get("http://localhost:8000/api/autor/estado=0");
     setBajasAutores(res.data.data.autor);
-  };
+  }; */
 
   const handleSubmitAutor = async (e) => {
     e.preventDefault();

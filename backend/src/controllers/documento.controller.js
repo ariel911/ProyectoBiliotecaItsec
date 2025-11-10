@@ -8,7 +8,7 @@ module.exports = {
   listar: async (req, res) => {
     try {
       const documentos = await models.documento.findAll({
-        attributes: ['id', 'titulo', 'cantidad', 'anio_edicion', 'ubicacion', 'descripcion', 'estado', 'codigo', 'imagen'],
+        attributes: ['id', 'titulo', 'cantidad', 'anio', 'ubicacion', 'descripcion', 'estado', 'codigo', 'imagen'],
 
         include: [
           {
@@ -19,10 +19,7 @@ module.exports = {
             model: models.carrera,
             attributes: ['id', 'nombre', 'estado'],
           },
-          {
-            model: models.formato,
-            attributes: ['id', 'nombre', 'estado'],
-          },
+
           {
             model: models.tipo_doc,
             attributes: ['id', 'nombre', 'estado'],

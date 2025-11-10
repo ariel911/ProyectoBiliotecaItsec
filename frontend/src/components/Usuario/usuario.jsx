@@ -3,18 +3,21 @@ import axios from "axios";
 import swal from "sweetalert";
 import Select from "react-select";
 import "./rol.css";
+import { useDropzone } from 'react-dropzone';
 
 const UsuarioRol = () => {
   // ---------- USUARIOS ----------
   const [usuarios, setUsuarios] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [nombre2, setNombre2] = useState("");
+  const [ci2, setCi2] = useState("");
   const [correo, setCorreo] = useState("");
   const [clave, setClave] = useState("");
+  const [user_name, setUserName] = useState("");
   const [rolUsuario, setRolUsuario] = useState(0);
   const [busquedaActivos, setBusquedaActivos] = useState("");
   const [busquedaBajasUsuarios, setBusquedaBajasUsuarios] = useState("");
-
+  const [imagen, setImagen] = useState(null);
   const [roles, setRoles] = useState([]);
 
   // ---------- ROLES ----------
@@ -27,8 +30,15 @@ const UsuarioRol = () => {
   const [editNombreRol, setEditNombreRol] = useState("");
   const [editSelectedMenu, setEditSelectedMenu] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [busquedaBajasRoles, setBusquedaBajasRoles] = useState("");
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: 'image/*',
+    onDrop: (acceptedFiles) => {
+      if (acceptedFiles.length > 0) {
+        setImagen(acceptedFiles[0]); // Guarda el archivo en el estado
+      }
+    },
+  });
 
   useEffect(() => {
     handleGetUsers();
@@ -44,6 +54,8 @@ const UsuarioRol = () => {
       document.getElementById("nombre2").value = selectedUser.nombre || "";
       document.getElementById("correo2").value = selectedUser.correo || "";
       document.getElementById("clave2").value = selectedUser.clave || "";
+      document.getElementById("user_name2").value = selectedUser.user_name || "";
+      document.getElementById("ci2").value = selectedUser.ci || "";
     }
   }, [selectedUser]);
 
@@ -92,6 +104,8 @@ const UsuarioRol = () => {
       nombre: document.getElementById("nombre2").value,
       correo: document.getElementById("correo2").value,
       clave: document.getElementById("clave2").value,
+      user_name: document.getElementById("user_name2").value,
+      ci: document.getElementById("ci2").value,
     });
     swal({ title: "Usuario Actualizado", icon: "success", button: "Ok" });
     setSelectedUser(null);
@@ -101,16 +115,22 @@ const UsuarioRol = () => {
   const handleSubmitUser = async (e) => {
     e.preventDefault();
     await axios.post("http://localhost:8000/api/usuarios", {
-      nombre:nombre2,
+      nombre: nombre2,
       correo,
+      ci: ci2,
       clave,
+      imagen: '../../assets/' + `${imagen.name}`,
+      user_name,
       estado: 1,
       rolId: rolUsuario,
     });
     swal({ title: "Usuario Agregado", icon: "success", button: "Ok" });
     setNombre2("");
+    setImagen(null);
+    setCi2("");
     setCorreo("");
     setClave("");
+    setUserName("");
     setRolUsuario(0);
     handleGetUsers();
   };
@@ -260,9 +280,9 @@ const UsuarioRol = () => {
       r.nombre_rol.toLowerCase().includes(qBajR)
   );
 
-  return (  
+  return (
     <div className="container mt-4">
-      <h1 className="tituloProyecto text-center mb-4 fw-bold text-primary">📋 Gestión Usuarios y Roles</h1>
+      <h1 className="tituloProyecto text-center mb-4 fw-bold text-primary">📋 Gestión Usuarios y Cargos</h1>
 
       <ul className="nav nav-tabs" id="tabs" role="tablist">
         <li className="nav-item">
@@ -272,7 +292,7 @@ const UsuarioRol = () => {
         </li>
         <li className="nav-item">
           <button className="nav-link" data-bs-toggle="tab" data-bs-target="#roles">
-            🛡️ Roles
+            🛡️ Cargos
           </button>
         </li>
         <li className="nav-item">
@@ -299,6 +319,16 @@ const UsuarioRol = () => {
                   />
                 </div>
                 <div className="col-md-4 mb-3">
+                  <label className="form-label">Ci</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={ci2}
+                    onChange={(e) => setCi2(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="col-md-4 mb-3">
                   <label className="form-label">Correo</label>
                   <input
                     type="email"
@@ -308,7 +338,10 @@ const UsuarioRol = () => {
                     required
                   />
                 </div>
-                <div className="col-md-4 mb-3">
+
+              </div>
+              <div className="row">
+                <div className="col-md-3 mb-3">
                   <label className="form-label">Rol</label>
                   <select
                     className="form-select"
@@ -324,9 +357,17 @@ const UsuarioRol = () => {
                     ))}
                   </select>
                 </div>
-              </div>
-              <div className="row">
-                <div className="col-md-4 mb-3">
+                <div className="col-md-3 mb-3">
+                  <label className="form-label">Usuario de Acceso</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={user_name}
+                    onChange={(e) => setUserName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="col-md-3 mb-3">
                   <label className="form-label">Clave</label>
                   <input
                     type="password"
@@ -335,6 +376,19 @@ const UsuarioRol = () => {
                     onChange={(e) => setClave(e.target.value)}
                     required
                   />
+                </div>
+                <div
+                  {...getRootProps()}
+                  className={`col-md-3 border border-2 border-dashed rounded-3 py-4 text-center ${isDragActive ? "border-primary text-primary" : "border-secondary text-muted"}`}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <input {...getInputProps()} />
+                  {isDragActive ? (
+                    <p><i className="bi bi-upload me-2"></i> Suelta la imagen aquí...</p>
+                  ) : (
+                    <p><i className="bi bi-image me-2"></i> Arrastra o selecciona una imagen</p>
+                  )}
+                  {imagen && <p className="text-success mt-2"><i className="bi bi-check-circle me-1"></i>{imagen.name}</p>}
                 </div>
               </div>
               <button type="submit" className="btn btn-primary">Guardar Usuario</button>
@@ -586,18 +640,32 @@ const UsuarioRol = () => {
             </div>
             <div className="modal-body">
               <form onSubmit={handleUpdateUser}>
-                <div className="mb-3">
-                  <label className="form-label">Nombre</label>
-                  <input type="text" className="form-control" id="nombre2" required />
+                <div className="row">
+                  <div className="mb-3 col">
+                    <label className="form-label">Nombre</label>
+                    <input type="text" className="form-control" id="nombre2" required />
+                  </div>
+                  <div className="mb-3 col">
+                    <label className="form-label">Ci</label>
+                    <input type="text" className="form-control" id="ci2" required />
+                  </div>
+
                 </div>
-                <div className="mb-3">
-                  <label className="form-label">Correo</label>
-                  <input type="email" className="form-control" id="correo2" required />
+                <div className="row">
+                  <div className="mb-3 col">
+                    <label className="form-label">Correo</label>
+                    <input type="email" className="form-control" id="correo2" required />
+                  </div>
+                  <div className="mb-3 col">
+                    <label className="form-label">Usuario de Acceso</label>
+                    <input type="text" className="form-control" id="user_name2" required />
+                  </div>
+                  <div className="mb-3 col">
+                    <label className="form-label">Clave</label>
+                    <input type="password" className="form-control" id="clave2" required />
+                  </div>
                 </div>
-                <div className="mb-3">
-                  <label className="form-label">Clave</label>
-                  <input type="password" className="form-control" id="clave2" required />
-                </div>
+
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
                     Cerrar

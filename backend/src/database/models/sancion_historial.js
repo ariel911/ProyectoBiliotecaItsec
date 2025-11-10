@@ -44,6 +44,7 @@ module.exports = (sequelize, DataTypes) => {
 
     Sancion_historial.associate = models => {
         Sancion_historial.belongsTo(models.sancion)
+        Sancion_historial.belongsTo(models.usuario)
     }
 
     return Sancion_historial

@@ -11,9 +11,25 @@ module.exports = {
         include: [{
           model: models.documento,
           attributes: ['id', 'descripcion', 'titulo', 'estado'],
+          include: [
+            {
+              model: models.area,
+              attributes: ['id', 'nombre', 'estado'],
+            },
+            {
+              model: models.tipo_doc,
+              attributes: ['id', 'nombre', 'estado'],
+            }, {
+              model: models.documento_autor,
+              attributes: ['autorId', 'documentoId'],
+              include: [{
+                model: models.autor,
+                attributes: ['id', 'nombre', 'estado'],
+              }]
+            }],
         }, {
           model: models.persona,
-          attributes: ['id', 'nombre', 'estado']
+          attributes: ['id', 'nombre', 'estado','ci']
         }]
       });
       res.json({
@@ -288,7 +304,7 @@ module.exports = {
       await reserva.update({ estado: 0 });
 
       // Aumentar la cantidad disponible del documento (+1)
-      await documento.update({ cantidad: documento.cantidad + 1,estado:1 });
+      await documento.update({ cantidad: documento.cantidad + 1, estado: 1 });
 
       res.json({
         success: true,

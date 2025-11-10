@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon src/index.js",
     "db:create": "npx sequelize-cli db:create",
-    "sed:custom":"npx sequelize-cli db:seed --seed menus.js && npx sequelize-cli db:seed --seed roles.js && npx sequelize-cli db:seed --seed usuarios.js"
+    "sed:custom":"npx sequelize-cli db:seed --seed menus.js && npx sequelize-cli db:seed --seed roles.js && npx sequelize-cli db:seed --seed usuarios.js",
+    "sed:carreras":"npx sequelize-cli db:seed --seed carrera.js",
+    "sed:tipo_persona":"npx sequelize-cli db:seed --seed tipo_per.js"
 
   },
   "author": "",
