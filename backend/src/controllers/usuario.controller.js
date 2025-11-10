@@ -45,12 +45,15 @@ module.exports = {
 
   crear: async (req, res) => {
     try {
-      const { nombre, correo, estado, clave, rolId } = req.body;
+      const { nombre, correo, estado, clave, rolId,ci,user_name,imagen } = req.body;
       const passwordHash = await encrypt(clave)
 
       const usuario = await models.usuario.create({
         nombre,
         correo,
+        ci,
+        user_name,
+        imagen,
         clave: passwordHash,
         estado,
         rolId, // Asocia el usuario con un rol

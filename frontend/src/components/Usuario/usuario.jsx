@@ -31,6 +31,7 @@ const UsuarioRol = () => {
   const [editSelectedMenu, setEditSelectedMenu] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [busquedaBajasRoles, setBusquedaBajasRoles] = useState("");
+  const id = localStorage.getItem('id');
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: 'image/*',
     onDrop: (acceptedFiles) => {

@@ -14,7 +14,7 @@ module.exports = {
           nombre: "Ariel Achu",
           user_name: "Ariel123",
           correo: "ariel@gmail.com",
-          imagen: "../../assets/ariel",
+          imagen: "../../assets/ariel.jpeg",
           ci: "10350511",
           clave: await encrypt("75457842"), // Encripta la clave
           estado: 1,

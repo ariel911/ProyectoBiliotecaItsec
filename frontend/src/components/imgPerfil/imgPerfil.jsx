@@ -9,8 +9,11 @@ const ImgPerfil = () => {
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [usuario, setUsuario] = useState(null);
+  const [usuarios, setUsuarios] = useState(null);
+  const [usuarioActual, setUsuarioActual] = useState(null);
   const [rol, setRol] = useState("");
   const [modalEditar, setModalEditar] = useState(false);
+  const id = localStorage.getItem('id');
   const [formData, setFormData] = useState({
     nombre: "",
     correo: "",
@@ -27,6 +30,29 @@ const ImgPerfil = () => {
       });
     }
   }, [usuario]);
+
+  const handleGetUsers = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/usuarios");
+      const listaUsuarios = res.data.data.usuarios;
+      setUsuarios(listaUsuarios);
+
+      // Buscar el usuario cuyo ID coincida con el localStorage
+      const usuario = listaUsuarios.find(
+        (u) => u.id == id
+      );
+
+      if (usuario) {
+        setUsuarioActual(usuario.imagen);
+      }
+    } catch (error) {
+      console.error("Error al obtener usuarios:", error);
+    }
+  };
+
+  useEffect(() => {
+    handleGetUsers();
+  }, []);
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -72,16 +98,21 @@ const ImgPerfil = () => {
     localStorage.removeItem("Rol");
     navigate("/");
   };
-  console.log("r",formData.imagen)
+  console.log("imagen", usuarioActual)
+  console.log("imagen2", ariel)
   return (
     <>
       <div className="elementoLink">
-        <img
-          src={`${formData.imagen}`}
-          className="imagenCircular"
-          onClick={() => setModalOpen(true)}
-          alt="Perfil"
-        />
+        {usuarioActual ? (
+          <img
+            src={usuarioActual}
+            className="imagenCircular"
+            onClick={() => setModalOpen(true)}
+            alt="Perfil"
+          />
+        ) : (
+          <p>Cargando imagen...</p>
+        )}
       </div>
       {modalEditar && (
         <div className="modalPerfilOverlay" onClick={() => setModalEditar(false)}>
@@ -122,7 +153,7 @@ const ImgPerfil = () => {
           <div className="modalPerfil" onClick={(e) => e.stopPropagation()}>
             {usuario ? (
               <div className="modalPerfilContenido">
-                <img src={imagenCircular} className="modalImagen" alt="Usuario" />
+                <img src={usuarioActual} className="modalImagen" alt="Usuario" />
                 <h2>{usuario.nombre}</h2>
                 <p><strong>Correo:</strong> {usuario.correo}</p>
                 <p><strong>Cargo:</strong> {rol}</p>

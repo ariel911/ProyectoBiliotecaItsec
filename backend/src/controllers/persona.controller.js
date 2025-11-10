@@ -82,7 +82,7 @@ module.exports = {
   // 
   update: async (req, res) => {
     const userId = req.params.id; // Suponiendo que el ID del persona a actualizar se pasa como parte de la URL.
-    const { nombre, correo, ci, celular, estado, carreraId } = req.body;
+    const { nombre, correo, ci, celular, estado, carreraId,clave } = req.body;
 
     try {
       // Busca el persona que se va a actualizar
@@ -101,6 +101,7 @@ module.exports = {
       persona.nombre = nombre;
       persona.correo = correo;
       persona.ci = ci;
+      persona.clave = clave;
       persona.celular = celular;
       persona.estado = estado;
       persona.carreraId = carreraId; // Actualiza la relación con carrera

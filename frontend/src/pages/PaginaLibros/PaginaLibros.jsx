@@ -17,6 +17,11 @@ const PaginaLibros = () => {
     const [reservas, setReservas] = useState([]);
     const nombrePersona = localStorage.getItem("nombrePersona");
     const personaId = localStorage.getItem("idPersona");
+    const [estudiantes, setEstudiantes] = useState([]);
+    const [estudianteActual, setEstudianteActual] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const id = localStorage.getItem("idPersona");
     const navigate = useNavigate();
     useEffect(() => {
         fetchDocumentos();
@@ -29,6 +34,84 @@ const PaginaLibros = () => {
         setFecha_reserva(getCurrentDateTime());
         setFecha_validez(getCurrentDateTime(1));
     }, []);
+
+    const handleGetEstudiantes = async () => {
+        try {
+            const res = await axios.get("http://localhost:8000/api/persona");
+            const list = res.data.data.personas || [];
+            setEstudiantes(list);
+
+            const estudiante = list.find((e) => e.id.toString() === id.toString());
+            if (estudiante) setEstudianteActual(estudiante);
+        } catch (err) {
+            console.error("Error cargando estudiantes", err);
+        }
+    };
+
+    // 🔹 Abrir modal para editar
+    const handleEditar = () => {
+        if (!estudianteActual) {
+            alert("No se encontró el estudiante actual.");
+            return;
+        }
+        setModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+    };
+
+    // 🔹 Cambiar valores en el formulario
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setEstudianteActual((prev) => ({ ...prev, [name]: value }));
+    };
+
+    // 🔹 Actualizar estudiante (PUT con axios)
+    const handleUpdateEstudiante = async () => {
+        if (!estudianteActual || !estudianteActual.id) {
+            alert("No hay estudiante seleccionado para actualizar.");
+            return;
+        }
+
+        try {
+            setSaving(true);
+
+            const url = `http://localhost:8000/api/persona/${estudianteActual.id}`;
+            const body = {
+                nombre: estudianteActual.nombre,
+                clave: estudianteActual.clave?.toString(),
+                correo: estudianteActual.correo,
+                ci: estudianteActual.ci,
+                celular: estudianteActual.celular,
+            };
+
+            // 🔹 Enviar actualización con axios.put
+            const res = await axios.put(url, body);
+
+            if (res.status === 200 || res.status === 201) {
+                alert("✅ Datos actualizados correctamente.");
+                await handleGetEstudiantes();
+                setModalOpen(false);
+            } else {
+                alert("⚠️ No se pudo actualizar. Revisa la consola.");
+                console.warn("Respuesta inesperada:", res);
+            }
+        } catch (error) {
+            console.error("Error al actualizar estudiante:", error);
+            alert("❌ Error al actualizar los datos. Revisa la consola.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // 🔹 Cargar datos al montar
+    useEffect(() => {
+        handleGetEstudiantes();
+    }, []);
+
+    // 🔹 Cerrar sesión
+
     const obtenerReservas = async () => {
         try {
             const response = await axios.get(`http://localhost:8000/reservas/reserva`);
@@ -387,7 +470,7 @@ const PaginaLibros = () => {
 
                     <div className="dropdown">
                         <img
-                            src={imagenCircular}
+                            src={estudianteActual?.imagen || imagenCircular}
                             className="rounded-circle"
                             alt="perfil"
                             width="45"
@@ -397,12 +480,17 @@ const PaginaLibros = () => {
                         />
                         <ul className="dropdown-menu dropdown-menu-end shadow">
                             <li>
-                                <a href="/config" className="dropdown-item">
-                                    ⚙️ Configuración
-                                </a>
+                                <button className="dropdown-item" onClick={handleEditar}>
+                                    ✏️ Editar perfil
+                                </button>
                             </li>
                             <li>
-                                <button className="nav-link text-start btn text-danger p-3" onClick={handleLogOut}>Cerrar sesión</button>
+                                <button
+                                    className="nav-link text-start btn text-danger p-3"
+                                    onClick={handleLogOut}
+                                >
+                                    Cerrar sesión
+                                </button>
                             </li>
                         </ul>
                     </div>
@@ -546,7 +634,103 @@ const PaginaLibros = () => {
 
 
             <Modal />
+            {/* Modal de edición */}
+            {/* 🔹 Modal para editar datos */}
+            {modalOpen && estudianteActual && (
+                <div
+                    className="modal fade show"
+                    style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+                >
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Editar Datos</h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={handleCloseModal}
+                                ></button>
+                            </div>
 
+                            <div className="modal-body">
+                                <div className="mb-3">
+                                    <label className="form-label">Nombre</label>
+                                    <input
+                                        type="text"
+                                        name="nombre"
+                                        value={estudianteActual.nombre || ""}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label">Clave</label>
+                                    <input
+                                        type="text"
+                                        name="clave"
+                                        value={estudianteActual.clave || ""}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label">Correo</label>
+                                    <input
+                                        type="email"
+                                        name="correo"
+                                        value={estudianteActual.correo || ""}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label">CI</label>
+                                    <input
+                                        type="text"
+                                        name="ci"
+                                        value={estudianteActual.ci || ""}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label">Celular</label>
+                                    <input
+                                        type="text"
+                                        name="celular"
+                                        value={estudianteActual.celular || ""}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={handleCloseModal}
+                                    disabled={saving}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={handleUpdateEstudiante}
+                                    disabled={saving}
+                                >
+                                    {saving ? "Guardando..." : "Guardar cambios"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
 
     );

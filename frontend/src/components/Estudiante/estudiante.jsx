@@ -448,6 +448,7 @@ const Estudiante = ({ handleAddUser }) => {
                     <th>Correo</th>
                     <th>CI</th>
                     <th>Celular</th>
+                    <th>Clave</th>
                     <th>Carrera</th>
                   </tr>
                 </thead>
@@ -459,6 +460,7 @@ const Estudiante = ({ handleAddUser }) => {
                       <td>{est.correo}</td>
                       <td>{est.ci}</td>
                       <td>{est.celular}</td>
+                      <td>{est.clave}</td>
                       <td>{est.carrera}</td>
                     </tr>
                   ))}
@@ -493,6 +495,7 @@ const Estudiante = ({ handleAddUser }) => {
                     <th>CI</th>
                     <th>Celular</th>
                     <th>Carrera</th>
+                    <th>Clave</th>
                     <th>Tipo</th>
                     <th>Acción</th>
                   </tr>
@@ -506,6 +509,7 @@ const Estudiante = ({ handleAddUser }) => {
                       <td>{est.ci}</td>
                       <td>{est.celular}</td>
                       <td>{est.persona_carreras?.[0]?.carrera?.nombre || '-'}</td>
+                      <td>{est.clave}</td>
                       <td>{est.tipo_persona?.nombre || '-'}</td>
                       <td>
                         {/* EDITAR: abre modal y setea datos (modal se muestra con data-bs-toggle) */}
