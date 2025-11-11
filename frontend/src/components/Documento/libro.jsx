@@ -23,7 +23,7 @@ const libro = () => {
     const [todosAutores, setTodosAutores] = useState([]);
     const [documentos, setDocumentos] = useState([]);
     const [selectedDocumento, setSelectedDocumento] = useState(null);
-
+    const idUsuario = localStorage.getItem('id');
     const [selecteDocument, setSelecteDocument] = useState(null);
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         accept: 'image/*',
@@ -132,6 +132,7 @@ const libro = () => {
                     areaId: are,
                     carreraId: null,
                     tipoDocId: 2,
+                    usuarioId: idUsuario,
                     autores: selectedOptionIds
                 },
 
@@ -286,7 +287,7 @@ const libro = () => {
                                     <input type="text" className="form-control" value={codigo} onChange={(e) => setCodigo(e.target.value)} required />
                                 </div>
                                 <div className="col-md-3">
-                                    <label className="form-label fw-semibold">Ubicación</label>
+                                    <label className="form-label fw-semibold">Ubicación Fisica</label>
                                     <input type="text" className="form-control" value={ubicacion} onChange={(e) => setUbicacion(e.target.value)} required />
                                 </div>
 

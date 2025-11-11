@@ -170,6 +170,7 @@ module.exports = {
 
       // Incrementar cantidad en +1
       documento.cantidad = (documento.cantidad || 0) + 1;
+      documento.estado = 1
       await documento.save();
 
       res.json({

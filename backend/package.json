@@ -9,7 +9,10 @@
     "db:create": "npx sequelize-cli db:create",
     "sed:custom":"npx sequelize-cli db:seed --seed menus.js && npx sequelize-cli db:seed --seed roles.js && npx sequelize-cli db:seed --seed usuarios.js",
     "sed:carreras":"npx sequelize-cli db:seed --seed carrera.js",
-    "sed:tipo_persona":"npx sequelize-cli db:seed --seed tipo_per.js"
+    "sed:tipo_persona":"npx sequelize-cli db:seed --seed tipo_per.js",
+    "sed:tipo_doc":"npx sequelize-cli db:seed --seed tipo_doc.js",
+    "sed:autor":"npx sequelize-cli db:seed --seed autor.js",
+    "sed:area":"npx sequelize-cli db:seed --seed area.js"
 
   },
   "author": "",

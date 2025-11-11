@@ -16,7 +16,7 @@ module.exports = {
       models.area.findOrCreate({
         where: { id: 2 },
         defaults: {
-          nombre: 'Quimica',
+          nombre: 'Fisica',
           estado: 1, // Activo
         }
       }),
@@ -28,8 +28,20 @@ module.exports = {
         }
       }),
 
-  
-
+      models.area.findOrCreate({
+        where: { id: 4 },
+        defaults: {
+          nombre: 'Economia',
+          estado: 1, // Activo
+        }
+      }),
+      models.area.findOrCreate({
+        where: { id: 5 },
+        defaults: {
+          nombre: 'Historia',
+          estado: 1, // Activo
+        }
+      }),
     ]);
   },
 };

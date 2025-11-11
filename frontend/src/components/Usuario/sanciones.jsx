@@ -10,6 +10,7 @@ const Sanciones = () => {
     fecha_inicio: new Date().toISOString().split("T")[0], // 📅 Fecha de hoy en formato YYYY-MM-DD
     fecha_fin: "",
   });
+  const idUsuario = localStorage.getItem('id');
   const [estudiantes, setEstudiantes] = useState([]);
   const [sanciones, setSanciones] = useState([]);
   const [historial, setHistorial] = useState([]);
@@ -61,6 +62,7 @@ const Sanciones = () => {
         descripcion: sancionData.descripcion,
         fecha_inicio: sancionData.fecha_inicio,
         fecha_fin: sancionData.fecha_fin,
+        usuarioId: idUsuario,
         estado: 1,
       });
       swal("✅ Sanción registrada correctamente", "", "success");
@@ -144,7 +146,7 @@ const Sanciones = () => {
     return (
       nombre.includes(qHist) ||
       motivo.includes(qHist) ||
-      sancionn.includes(qHist) 
+      sancionn.includes(qHist)
     );
   });
 

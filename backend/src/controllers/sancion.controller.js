@@ -55,7 +55,7 @@ module.exports = {
   },
   crear: async (req, res) => {
     try {
-      const { tipo_sancion, descripcion, fecha_inicio, fecha_fin, estado, personaId, prestamoId } = req.body;
+      const { tipo_sancion, descripcion, fecha_inicio, fecha_fin, estado, personaId, prestamoId,usuarioId } = req.body;
 
       // Crear la sanción
       const sancion = await models.sancion.create({
@@ -65,7 +65,8 @@ module.exports = {
         fecha_fin,
         estado,
         personaId,
-        prestamoId
+        prestamoId,
+        usuarioId
       });
 
       // Desactivar persona siempre

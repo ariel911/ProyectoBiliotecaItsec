@@ -10,6 +10,7 @@ const prestamo = () => {
     const token = localStorage.getItem('token');
     const [selectedUser, setSelectedUser] = useState(null);
     const [sanciones, setSanciones] = useState([]);
+    const idUsuario = localStorage.getItem('id');
     const [quitarData, setQuitarData] = useState({
         motivo_levantamiento: "",
         fecha_levantamiento: new Date().toISOString().split("T")[0],
@@ -22,6 +23,7 @@ const prestamo = () => {
         observaciones: " ",
         persona: "",
         garantia: " ",
+        tipo_prestamo: " ",
         estado: '',
     });
     const [sancionData, setSancionData] = useState({
@@ -220,6 +222,7 @@ const prestamo = () => {
                     fecha_devolucion: prestamoData.fecha_devolver,
                     observaciones: prestamoData.observaciones,
                     garantia: prestamoData.garantia,
+                    tipo_prestamo: prestamoData.tipo_prestamo,
                     usuarioId: id,
                     estado: 1,
                     personaId: selectedUser.persona.id,
@@ -329,6 +332,7 @@ const prestamo = () => {
                         observaciones: prestamoData.observaciones,
                         usuarioId: id,
                         garantia: prestamoData.garantia,
+                        tipo_prestamo: prestamoData.tipo_prestamo,
                         estado: 1,
                         personaId: selectedOption['value'],
                         documentoId: selectedUser.id,
@@ -340,6 +344,7 @@ const prestamo = () => {
                         fecha_devolver: '',
                         observaciones: '',
                         garantia: '',
+                        tipo_prestamo: '',
                     });
                     setSelectedUser(null);
                     setSelectedOption('');
@@ -569,6 +574,7 @@ const prestamo = () => {
                 descripcion: sancionData.descripcion,
                 fecha_inicio: sancionData.fecha_inicio,
                 fecha_fin: sancionData.fecha_fin,
+                usuarioId: idUsuario,
                 estado: '1',
             });
 
@@ -1021,6 +1027,11 @@ const prestamo = () => {
                                         onChange={e => setPrestamoData({ ...prestamoData, garantia: e.target.value })} />
                                 </div>
                                 <div className="mb-3">
+                                    <label className="form-label">Tipo Prestamo</label>
+                                    <input type="text" className="form-control" value={prestamoData.tipo_prestamo}
+                                        onChange={e => setPrestamoData({ ...prestamoData, tipo_prestamo: e.target.value })} />
+                                </div>
+                                <div className="mb-3">
                                     <label className="form-label">Buscar Estudiante por CI o Nombre</label>
                                     <Select
                                         options={options}
@@ -1147,8 +1158,8 @@ const prestamo = () => {
                                 </div>
                                 <div className="mb-3">
                                     <label className="form-label">Garantía</label>
-                                    <input type="text" className="form-control" value={prestamoData.garantia}
-                                        onChange={e => setPrestamoData({ ...prestamoData, garantia: e.target.value })} />
+                                    <input type="text" className="form-control" value={prestamoData.tipo_prestamo}
+                                        onChange={e => setPrestamoData({ ...prestamoData, tipo_prestamo: e.target.value })} />
                                 </div>
                             </form>
                         </div>

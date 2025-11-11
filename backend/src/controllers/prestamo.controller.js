@@ -7,7 +7,7 @@ module.exports = {
   listar: async (req, res) => {
     try {
       const prestamos = await models.prestamo.findAll({
-        attributes: ['id', 'garantia', 'estado', 'fecha_prestamo', 'fecha_devolucion'],
+        attributes: ['id', 'garantia', 'estado', 'fecha_prestamo', 'fecha_devolucion','tipo_prestamo'],
         include: [
           {
             model: models.usuario, // Agregar modelo de usuarios
@@ -92,12 +92,13 @@ module.exports = {
         }
 
 
-        await models.prestamo.create({ // Se crea una nueva reserva en la base de datos
+        await models.prestamo.create({ // Se crea un prestamo en la base de datos
           documentoId,
           usuarioId,
           personaId,
           estado: req.body.estado,
           garantia: req.body.garantia,
+          tipo_prestamo: req.body.tipo_prestamo,
           observaciones: req.body.observaciones,
           fecha_devolucion: req.body.fecha_devolucion,
           fecha_prestamo: req.body.fecha_prestamo,
