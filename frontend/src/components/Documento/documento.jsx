@@ -47,7 +47,7 @@ const documento = () => {
             document.getElementById('ubicacion2').value = selecteDocument?.ubicacion || '';
             document.getElementById('codigo2').value = selecteDocument?.codigo || '';
             document.getElementById('cantidad2').value = selecteDocument?.cantidad || '';
-            document.getElementById('area2').value = selecteDocument?.area?.id || null;
+     /*        document.getElementById('area2').value = selecteDocument?.area?.id || null; */
         }
         handleGetDocuments();
 
@@ -59,7 +59,7 @@ const documento = () => {
         fetchTiposDocumento();
         getCarreras();
 
-        getArea();
+    /*     getArea(); */
         getAutores();
 
     }, []);
@@ -115,7 +115,7 @@ const documento = () => {
                 ubicacion: document.getElementById('ubicacion2').value,
                 Codigo: document.getElementById('codigo2').value,
                 estado: 1,
-                areaId: document.getElementById('area2').value, // ✅ aquí el área
+       /*          areaId: document.getElementById('area2').value, // ✅ aquí el área */
             },
         });
 
@@ -143,7 +143,7 @@ const documento = () => {
                     ubicacion: ubicacion || null,
                     Codigo: codigo,
                     estado: 1,
-                    areaId: are || null,
+            /*         areaId: are || null, */
                     carreraId: carr || null,
                     tipoDocId: tipodoc,
                     autores: selectedOptionIds
@@ -194,11 +194,11 @@ const documento = () => {
         setCarreras(res.data.data.carrera);
     };
 
-    const getArea = async () => {
+/*     const getArea = async () => {
         const res = await axios.get('http://localhost:8000/api/area',
         );
         setAreas(res.data.data.area);
-    };
+    }; */
     const getAutores = async () => {
         const res = await axios.get('http://localhost:8000/api/autor',
         );
@@ -221,7 +221,6 @@ const documento = () => {
         this.field('descripcion')
         this.field('autores')
         this.field('tipo_doc')
-        this.field('area')
         this.field('carrera')
         documentos?.map((document, ind) =>
             this.add({
@@ -230,7 +229,6 @@ const documento = () => {
                 "descripcion": document.descripcion,
                 "autores": document?.documento_autors[0]?.autor?.nombre,
                 "tipo_doc": document?.tipo_doc?.nombre,
-                "area": document?.area?.nombre,
                 "carrera": document?.carrera?.nombre,
             })
         );
@@ -353,7 +351,7 @@ const documento = () => {
                                 </select>
                             </div>
 
-                            <div className="col-md-3">
+                     {/*        <div className="col-md-3">
                                 <label htmlFor="are" className="form-label fw-semibold">Área</label>
                                 <select className="form-select" id="are" value={are} onChange={(e) => setAre(e.target.value)}>
                                     <option hidden>Selecciona Área</option>
@@ -361,7 +359,7 @@ const documento = () => {
                                         <option key={area.id} value={area.id}>{area.nombre}</option>
                                     ))}
                                 </select>
-                            </div>
+                            </div> */}
 
                             <div className="col-md-6">
                                 <div
@@ -400,7 +398,7 @@ const documento = () => {
                                         <th>Autores</th>
                                         <th>Cantidad</th>
                                         <th>Carrera</th>
-                                        <th>Área</th>
+                                        {/* <th>Área</th> */}
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -414,7 +412,7 @@ const documento = () => {
                                                 <td>{`${documento.documento_autors[0]?.autor?.nombre || ''}${documento.documento_autors[1] ? ', ' + documento.documento_autors[1]?.autor?.nombre : ''}`}</td>
                                                 <td>{documento.cantidad}</td>
                                                 <td>{documento?.carrera?.nombre}</td>
-                                                <td>{documento?.area?.nombre}</td>
+                                      {/*           <td>{documento?.area?.nombre}</td> */}
 
                                                 <td>
                                                     <div className="d-flex gap-2">
@@ -469,7 +467,7 @@ const documento = () => {
                                     <th>Título</th>
                                     <th>Autores</th>
                                     <th>Cantidad</th>
-                                    <th>Área</th>
+                           {/*          <th>Área</th> */}
                                     <th>Acción</th>
                                 </tr>
                             </thead>
@@ -481,7 +479,7 @@ const documento = () => {
                                             <td>{documento.titulo}</td>
                                             <td>{`${documento.documento_autors[0]?.autor?.nombre || ''}${documento.documento_autors[1] ? ', ' + documento.documento_autors[1]?.autor?.nombre : ''}`}</td>
                                             <td>{documento.cantidad}</td>
-                                            <td>{documento?.area?.nombre}</td>
+                                          {/*   <td>{documento?.area?.nombre}</td> */}
                                             <td>
                                                 <button className="btn btn-success btn-sm" onClick={() => handleDarReintegrar(documento.id)}>
                                                     <i className="bi bi-arrow-clockwise me-1"></i>Reintegrar
@@ -535,7 +533,7 @@ const documento = () => {
                                             <input type="text" className="form-control" id="ubicacion2" defaultValue={selecteDocument?.ubicacion} required />
                                         </div>
                                     </div>
-                                    <div className="mb-3 col">
+                              {/*       <div className="mb-3 col">
                                         <label htmlFor="area2" className="form-label">Área</label>
                                         <select className="form-select" id="area2" required>
                                             <option value="">Seleccione un área</option>
@@ -545,7 +543,7 @@ const documento = () => {
                                                 </option>
                                             ))}
                                         </select>
-                                    </div>
+                                    </div> */}
                                 </div>
                                 <button type="submit" className="btn btn-primary booton" onClick={handleEdit} data-bs-dismiss="modal">Editar</button>
                             </form>
@@ -614,10 +612,10 @@ const documento = () => {
                                             {selectedDocumento.cantidad}
                                         </p>
 
-                                        <p>
+                                    {/*     <p>
                                             <strong>📚 Área:</strong>{" "}
                                             {selectedDocumento.area?.nombre || "No asignada"}
-                                        </p>
+                                        </p> */}
 
                                         {selectedDocumento.documento_autors?.length > 0 && (
                                             <p>
