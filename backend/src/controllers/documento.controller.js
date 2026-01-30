@@ -30,6 +30,14 @@ module.exports = {
               model: models.autor,
               attributes: ['id', 'nombre', 'estado'],
             }]
+          }
+          , {
+            model: models.documento_persona,
+            attributes: ['personaId', 'documentoId'],
+            include: [{
+              model: models.persona,
+              attributes: ['id', 'nombre', 'ci'],
+            }]
           }],
         // include:[{
         //   model:models.area
@@ -61,16 +69,23 @@ module.exports = {
       const documento = await models.documento.create(req.body);
 
       // Crear las relaciones muchos a muchos con los autores
-      console.log(req.body.autores, Array.isArray(req.body.autores))
       if (req.body.autores && Array.isArray(req.body.autores)) {
         for (const autorId of req.body.autores) {
-          console.log(autorId)
           await models.documento_autor.create({
             documentoId: documento.id,
             autorId: autorId
           });
         }
       }
+      if (req.body.personas && Array.isArray(req.body.personas)) {
+        for (const personaId of req.body.personas) {
+          await models.documento_persona.create({
+            documentoId: documento.id,
+            personaId: personaId
+          });
+        }
+      }
+
 
       res.status(201).json({
         success: true,

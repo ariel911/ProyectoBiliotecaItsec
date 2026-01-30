@@ -72,6 +72,7 @@ module.exports = (sequelize, DataTypes) => {
     Documento.belongsTo(models.tipo_doc)
     Documento.belongsTo(models.carrera)
     Documento.belongsTo(models.usuario)
+    Documento.hasMany(models.documento_persona)
 
   }
 

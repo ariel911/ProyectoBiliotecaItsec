@@ -167,7 +167,7 @@ const libro = () => {
         setDocumentos(res.data.data.documentos);
         setSearchResults(res.data.data.documentos)
     };
-
+console.log("docc",documentos)
     const getArea = async () => {
         const res = await axios.get('http://localhost:8000/api/area',);
         setAreas(res.data.data.area);

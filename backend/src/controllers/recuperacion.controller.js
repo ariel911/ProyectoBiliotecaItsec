@@ -1,60 +1,70 @@
 const models = require("../database/models/index");
 
 module.exports = {
-  cargarBackup: async (req, res) => {
+  // ✅ Restaurar backup recibido directamente por body
+  recuperarBackup: async (req, res) => {
     try {
-      // Obtén los datos del cuerpo de la solicitud
-      const backupData = req.body;
+      const jsonData = req.body;
 
-      // Define el mapeo entre entidades y modelos
-      const entidadModeloMap = {
-        carreras: models.carrera,
-        roles: models.rol,
-        usuarios: models.usuario,
-        areas: models.area,
-        tiposDocumento: models.tipo_doc,
-        tiposPersona: models.tipo_persona,
-        sanciones: models.sancion,
-        personas: models.persona,
-        autores: models.autor,
-        documentos: models.documento,
-        reservas: models.reserva,
-        prestamos: models.prestamo,
-        devoluciones: models.devolucion,
-        menus: models.menu,
-        // Agrega aquí otras entidades según sea necesario
-        documento_autor: models.documento_autor,
-        menu_rol: models.menu_rol,
-      };
+      // Validación básica del contenido
+      if (!jsonData || typeof jsonData !== "object" || Array.isArray(jsonData)) {
+        return res.status(400).json({
+          success: false,
+          message: "El archivo JSON es inválido o está vacío.",
+        });
+      }
 
-      // Procesa cada entidad del objeto JSON
-      for (const [entidad, registros] of Object.entries(backupData)) {
-        const modelo = entidadModeloMap[entidad];
+      // Orden lógico de inserción (respetando relaciones)
+      const entidades = [
+        "rols",
+        "usuarios",
+        "areas",
+        "tipo_docs",
+        "tipo_personas",
+        "carreras",
+        "sancions",
+        "personas",
+        "persona_carreras",
+        "autors",
+        "documentos",
+        "reservas",
+        "prestamos",
+        "devolucions",
+        "documento_autors",
+        "documento_personas",
+      ];
 
-        if (!modelo) {
-          console.warn(`Modelo no definido para la entidad: ${entidad}`);
-          continue;
-        }
+      for (const entidad of entidades) {
+        const registros = jsonData[entidad];
+        if (registros && Array.isArray(registros) && registros.length > 0) {
+          const nombreModelo = entidad.slice(0, -1); // quitar plural (ej: usuarios -> usuario)
+          const modelo = models[nombreModelo];
 
-        console.log(`Procesando datos para la entidad: ${entidad}`);
-        for (const registro of registros) {
-          // Usa findOrCreate para insertar o evitar duplicados
-          await modelo.findOrCreate({
-            where: { id: registro.id }, // Verifica por ID u otro campo único
-            defaults: registro, // Inserta si no existe
-          });
+          if (modelo) {
+            try {
+              // Inserta ignorando duplicados
+              await modelo.bulkCreate(registros, {
+                ignoreDuplicates: true,
+              });
+            } catch (error) {
+              console.warn(`⚠️ Error parcial en ${entidad}:`, error.message);
+            }
+          } else {
+            console.warn(`⚠️ Modelo no encontrado para la entidad: ${entidad}`);
+          }
         }
       }
 
       res.json({
         success: true,
-        message: "Datos cargados exitosamente desde el backup.",
+        message: "✅ Backup restaurado correctamente.",
       });
     } catch (error) {
-      console.error("Error al cargar datos desde el backup:", error);
+      console.error("❌ Error al recuperar el backup:", error);
       res.status(500).json({
         success: false,
-        message: "Error al cargar datos desde el backup.",
+        message: "Ha ocurrido un error al restaurar el backup.",
+        error: error.message,
       });
     }
   },

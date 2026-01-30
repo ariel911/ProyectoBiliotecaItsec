@@ -5,23 +5,28 @@ module.exports = {
     try {
       // Modelos base sin relaciones muchos a muchos
       const entidades = {
+        menus: models.menu,
+        rols: models.rol,
+        menu_rols: models.menu_rol,
         usuarios: models.usuario,
-        roles: models.rol,
+        tipo_docs:models.tipo_doc,
+        tipo_personas:models.tipo_persona,
         areas: models.area,
-        tiposDocumento: models.tipo_doc,
-        tiposPersona: models.tipo_persona,
         carreras: models.carrera,
-        sanciones: models.sancion,
         personas: models.persona,
-        autores: models.autor,
+        persona_carreras: models.persona_carrera,
+        autors: models.autor,
         documentos: models.documento,
         reservas: models.reserva,
         prestamos: models.prestamo,
-        devoluciones: models.devolucion,
-        menus: models.menu,
+        devolucions: models.devolucion,
+        sancions: models.sancion,
+        sancion_historials: models.sancion_historial,
+    
         // Relaciones muchos a muchos
-        documento_autor: models.documento_autor,
-        menu_rol: models.menu_rol,
+        documento_autors: models.documento_autor,
+        documento_personas: models.documento_persona,
+    
       };
 
       const backup = {};

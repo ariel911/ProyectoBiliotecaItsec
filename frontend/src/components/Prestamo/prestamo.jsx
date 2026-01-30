@@ -752,16 +752,24 @@ const prestamo = () => {
                                     <td>{doc.titulo}</td>
                                     <td>{doc.descripcion}</td>
                                     <td>
-                                        {doc?.documento_autors?.map((a, idx) => (
-                                            <span key={idx}>
-                                                {a.autor?.nombre}
-                                                {idx < doc.documento_autors.length - 1 ? ", " : ""}
-                                            </span>
-                                        ))}
+                                        {(doc?.tipo_doc.nombre === "Libro")?
+                                            (doc?.documento_autors?.map((a, idx) => (
+                                                <span key={idx}>
+                                                    {a.autor?.nombre}
+                                                    {idx < doc.documento_autors.length - 1 ? ", " : ""}
+                                                </span>
+                                            )))
+                                            : (doc?.documento_personas?.map((a, idx) => (
+                                                <span key={idx}>
+                                                    {a.persona?.nombre}
+                                                    {idx < doc.documento_personas.length - 1 ? ", " : ""}
+                                                </span>
+                                            )))
+                                        }
                                     </td>
                                     <td>{doc.cantidad}</td>
                                     <td>{doc.tipo_doc?.nombre}</td>
-                                    <td>{doc.area?.nombre}</td>
+                                    <td>{doc.area?doc.area.nombre:"Multidisciplinario"}</td>
                                     <td>
                                         <button
                                             className="btn btn-outline-primary btn-sm"

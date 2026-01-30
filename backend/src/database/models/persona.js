@@ -60,6 +60,7 @@ module.exports = (sequelize, DataTypes) => {
     Persona.hasMany(models.persona_carrera)
     Persona.belongsTo(models.tipo_persona)
     Persona.belongsTo(models.usuario)
+    Persona.hasMany(models.documento_persona)
   }
 
   return Persona

@@ -20,6 +20,7 @@ const documento = () => {
     const [gestion, setGestion] = useState('');
     const [selectedOption, setSelectedOption] = useState('');
     const idUsuario = localStorage.getItem('id');
+    const [estudiantes, setEstudiantes] = useState([]);
     //const [autores, setAutores] = useState('');
     //buscador
     const [searchText, setSearchText] = useState('');
@@ -58,12 +59,23 @@ const documento = () => {
         // Obtener la lista de documentoes al cargar el componente
         handleGetDocuments();
         fetchTiposDocumento();
+        handleGetEstudiantes();
         getCarreras();
 
         /*     getArea(); */
         getAutores();
 
     }, []);
+    const handleGetEstudiantes = async () => {
+        try {
+            const res = await axios.get('http://localhost:8000/api/persona');
+            const list = res.data.data.personas || [];
+            setEstudiantes(list);
+        } catch (err) {
+            console.error('Error cargando estudiantes', err);
+        }
+    };
+
     const handleDarReintegrar = async (document) => {
         // Restablecer los campos del formulario
         await axios({
@@ -148,7 +160,7 @@ const documento = () => {
                     carreraId: carr || null,
                     tipoDocId: tipodoc,
                     usuarioId: idUsuario,
-                    autores: selectedOptionIds
+                    personas: selectedOptionIds
                 },
             ).then((response) => {
                 // Accede a la respuesta de la API
@@ -206,15 +218,17 @@ const documento = () => {
         );
         setTodosAutores(res.data.data.autores);
     };
-    const options = todosAutores.map((autor) => ({
-        value: autor.id,
-        label: autor.nombre,
+    const options = estudiantes.map(est => ({
+        value: est.id,
+        label: `${est.nombre} - CI: ${est.ci}`,
+        ci: est.ci
     }));
     const handleSelectChange = (selectedOption) => {
         setSelectedOption(selectedOption)
     };
-    const filteredOptions = options.filter((autor) =>
-        autor.label.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredOptions = options.filter((estudiante) =>
+        estudiante.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        estudiante.ci.toString().includes(searchTerm)
     );
     //busqueda
     var idx = lunr(function () {
@@ -411,7 +425,9 @@ const documento = () => {
                                                 <td>{index + 1}</td>
                                                 <td>{documento.titulo}</td>
                                                 <td>{documento.descripcion}</td>
-                                                <td>{`${documento.documento_autors[0]?.autor?.nombre || ''}${documento.documento_autors[1] ? ', ' + documento.documento_autors[1]?.autor?.nombre : ''}`}</td>
+                                 
+
+                                              {  <td>{`${documento.documento_personas[0]?.persona?.nombre || ''}${documento.documento_personas[1] ? ', ' + documento.documento_personas[1]?.persona?.nombre : ''}`}</td> }
                                                 <td>{documento.cantidad}</td>
                                                 <td>{documento?.carrera?.nombre}</td>
                                                 {/*           <td>{documento?.area?.nombre}</td> */}

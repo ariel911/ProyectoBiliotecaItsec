@@ -104,24 +104,24 @@ const Entrada = () => {
 
   // === Datos para las tarjetas ===
   const tarjetas = [
-    { titulo: 'Documentos', valor: documentos.length, icono: faBook, color: '#007BFF' },
-    { titulo: 'Usuarios', valor: usuarios.length, icono: faUsers, color: '#28A745' },
-    { titulo: 'Préstamos', valor: prestamos.length, icono: faHourglass, color: '#FFC107' },
-    { titulo: 'Carreras', valor: carreras.length, icono: faGraduationCap, color: '#6F42C1' },
-    { titulo: 'Sanciones', valor: sanciones.length, icono: faUser, color: '#DC3545' },
-    { titulo: 'Áreas', valor: areas.length, icono: faBookOpen, color: '#17A2B8' },
+    { titulo: 'Documentos', valor: documentos?.length, icono: faBook, color: '#007BFF' },
+    { titulo: 'Usuarios', valor: usuarios?.length, icono: faUsers, color: '#28A745' },
+    { titulo: 'Préstamos', valor: prestamos?.length, icono: faHourglass, color: '#FFC107' },
+    { titulo: 'Carreras', valor: carreras?.length, icono: faGraduationCap, color: '#6F42C1' },
+    { titulo: 'Sanciones', valor: sanciones?.length, icono: faUser, color: '#DC3545' },
+    { titulo: 'Áreas', valor: areas?.length, icono: faBookOpen, color: '#17A2B8' },
   ];
 
   // === Datos simulados para gráficos ===
   // En un futuro, puedes reemplazar esto con datos reales de tu API
-  const prestamosPorCarrera = carreras.map((carrera) => ({
-    name: carrera.nombre,
-    prestamos: prestamos.filter(p => p.persona?.persona_carreras[0]?.carrera?.id === carrera.id).length
+  const prestamosPorCarrera = carreras?.map((carrera) => ({
+    name: carrera?.nombre,
+    prestamos: prestamos?.filter(p => p.persona?.persona_carreras[0]?.carrera?.id === carrera.id)?.length
   }));
   const tiposDocumento = [
-    { name: 'Libro', value: documentos.filter(d => d.tipo_doc.nombre === 'Libro').length },
-    { name: 'Tesis', value: documentos.filter(d => d.tipo_doc.nombre === 'Tesis').length },
-    { name: 'Proyecto', value: documentos.filter(d => d.tipo_doc.nombre === 'Proyecto').length },
+    { name: 'Libro', value: documentos?.filter(d => d?.tipo_doc?.nombre === 'Libro')?.length },
+    { name: 'Tesis', value: documentos?.filter(d => d?.tipo_doc?.nombre === 'Tesis')?.length },
+    { name: 'Proyecto', value: documentos?.filter(d => d?.tipo_doc?.nombre === 'Proyecto')?.length },
   ];
 
   const COLORS = ['#007BFF', '#28A745', '#FFC107', '#6F42C1'];
@@ -223,8 +223,8 @@ const Entrada = () => {
           <h3>Resumen rápido</h3>
           <p>
             Actualmente el sistema cuenta con <strong>{documentos.length}</strong> documentos,
-            <strong> {usuarios.length}</strong> usuarios registrados y
-            <strong> {prestamos.length}</strong> préstamos activos.
+            <strong> {usuarios?.length}</strong> usuarios registrados y
+            <strong> {prestamos?.length}</strong> préstamos activos.
           </p>
         </div>
       </div>

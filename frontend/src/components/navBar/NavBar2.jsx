@@ -61,14 +61,14 @@ const NavBar = () => {
                 <div className={`collapse navbar-collapse w-100 ${menuOpen ? 'show' : ''}`}>
                     <ul className="navbar-nav flex-column w-100">
                         {/* USUARIOS */}
-                        {(menuPermissions.includes('Todo') || menuPermissions.includes('Prestamos')) && (
-                            <li className="nav-item">
-                                <Link className="nav-link" to={'/homeInicio'}>
-                                    <FontAwesomeIcon icon={faHouse} className="me-2" /> Inicio
-                                </Link>
-                            </li>
-                        )}
-                        {(menuPermissions.includes('Usuarios') || menuPermissions.includes('Cargos') || menuPermissions.includes('Todo')) && (
+
+                        <li className="nav-item">
+                            <Link className="nav-link" to={'/homeInicio'}>
+                                <FontAwesomeIcon icon={faHouse} className="me-2" /> Inicio
+                            </Link>
+                        </li>
+
+                        {(menuPermissions.includes('Usuarios') || menuPermissions.includes('Todo')) && (
                             <li className="nav-item">
                                 <Link className="nav-link" to={HOME_USUARIO}>
                                     <FontAwesomeIcon icon={faUser} className="me-2" /> Usuarios
@@ -77,7 +77,7 @@ const NavBar = () => {
                         )}
 
                         {/* DOCUMENTOS */}
-                        {(menuPermissions.includes('Todo') || menuPermissions.includes('Documentos Academicos') || menuPermissions.includes('Libros') || menuPermissions.includes('Autores')) && (
+                        {(menuPermissions.includes('Todo') || menuPermissions.includes('Documentos Academicos') || menuPermissions.includes('Libros') || menuPermissions.includes('Areas y Autores')) && (
                             <li className="nav-item">
                                 <div
                                     className="nav-link d-flex justify-content-between align-items-center"
@@ -99,7 +99,7 @@ const NavBar = () => {
                         )}
 
                         {/* INSTITUTO */}
-                        {(menuPermissions.includes('Todo') || menuPermissions.includes('Miembros Instituto')) && (
+                        {(menuPermissions.includes('Todo') || menuPermissions.includes('Sancionados') || menuPermissions.includes('Miembros Instituto')) && (
                             <li className="nav-item">
                                 <div
                                     className="nav-link d-flex justify-content-between align-items-center"
@@ -120,7 +120,7 @@ const NavBar = () => {
                         )}
 
                         {/* OTROS MENÚS */}
-                        {(menuPermissions.includes('Todo') || menuPermissions.includes('Prestamos')) && (
+                        {(menuPermissions.includes('Todo') || menuPermissions.includes('Préstamos')) && (
                             <li className="nav-item">
                                 <Link className="nav-link" to={HOME_PRESTAMO}>
                                     <FontAwesomeIcon icon={faFolder} className="me-2" /> Préstamos
@@ -137,12 +137,13 @@ const NavBar = () => {
                         )}
 
                         {/* GESTIÓN DE DATOS */}
-                        <li className="nav-item">
-                            <Link className="nav-link" to={HOME_BACKUP}>
-                                <FontAwesomeIcon icon={faFileArrowDown} className="me-2" /> Gestión de Datos
-                            </Link>
-                        </li>
-
+                        {(menuPermissions.includes('Todo') || menuPermissions.includes('Gestión de datos')) && (
+                            <li className="nav-item">
+                                <Link className="nav-link" to={HOME_BACKUP}>
+                                    <FontAwesomeIcon icon={faFileArrowDown} className="me-2" /> Gestión de Datos
+                                </Link>
+                            </li>
+                        )}
                         {/* PÁGINA */}
                         <li className="nav-item">
                             <Link className="nav-link" to={LOGIN_BIBLIOTECA}>

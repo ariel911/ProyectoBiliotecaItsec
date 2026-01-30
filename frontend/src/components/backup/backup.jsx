@@ -83,6 +83,7 @@ const RespaldoRestauracion = () => {
       reader.onload = async (event) => {
         try {
           const contenido = JSON.parse(event.target.result);
+          console.log("cont",contenido)
           const response = await axios.post(
             "http://localhost:8000/api/recuperacion/cargar",
             contenido,

@@ -129,13 +129,13 @@ const ReporteDocumentos = () => {
             { header: 'Descripción', key: 'descripcion', width: 30 },
             { header: 'Estado', key: 'estado', width: 15 },
             { header: 'Código', key: 'codigo', width: 15 },
-            { header: 'Área', key: 'area', width: 20 },
+      /*       { header: 'Área', key: 'area', width: 20 }, */
             { header: 'Carrera', key: 'carrera', width: 20 },
             { header: 'Tipo de Documento', key: 'tipo_doc', width: 20 },
             { header: 'Autor(es)', key: 'autores', width: 30 }
         ];
         // Agregar datos
-        filteredDocs.forEach((doc, index) => {
+        filteredDocs?.forEach((doc, index) => {
             worksheet.addRow({
                 id: index + 1,
                 titulo: doc.titulo,
@@ -145,7 +145,7 @@ const ReporteDocumentos = () => {
                 descripcion: doc.descripcion,
                 estado: doc.estado === 1 ? 'Activo' : doc.estado === 0 ? 'Inactivo' : 'Eliminado',
                 codigo: doc.codigo,
-                area: doc.area.nombre,
+/*                 area: doc.area.nombre, */
                 carrera: doc.carrera?.nombre,
 
                 tipo_doc: doc.tipo_doc.nombre,
@@ -176,7 +176,7 @@ const ReporteDocumentos = () => {
     };
 
     const filterPrestamos = () => {
-        return prestamos.filter(prestamo => {
+        return prestamos?.filter(prestamo => {
             const prestamoFecha = new Date(prestamo.fecha_prestamo);
             const prestamoAnio = prestamoFecha.getFullYear();
             const prestamoMes = prestamoFecha.getMonth() + 1;
@@ -392,11 +392,11 @@ const ReporteDocumentos = () => {
                         Personas
                     </a>
                 </li>
-                <li className="nav-item">
+           {/*      <li className="nav-item">
                     <a className="nav-link fw-semibold" data-bs-toggle="tab" href="#reporteDiario" role="tab">
                         Actividad del dia
                     </a>
-                </li>
+                </li> */}
             </ul>
 
             <div className="tab-content border rounded p-4 shadow-sm bg-white">
@@ -581,7 +581,7 @@ const ReporteDocumentos = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredPrestamo.map((prestamo) => (
+                                {filteredPrestamo?.map((prestamo) => (
                                     <tr key={prestamo.id}>
                                         <td>{prestamo.id}</td>
                                         <td>{prestamo?.documento?.titulo}</td>

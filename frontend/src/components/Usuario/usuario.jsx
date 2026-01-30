@@ -480,14 +480,14 @@ const UsuarioRol = () => {
               <input
                 type="text"
                 placeholder="🔍 Buscar roles activos..."
-                className="form-control mb-2 w-50 mt-5 mb-4"
+                className="form-control mb-2 w-50 mt-5 mb-5"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
 
-              <div className="table-responsive mt-3" style={{ maxHeight: "300px", overflowY: "auto" }}>
+              <div className="table-responsive mt-5" style={{ maxHeight: "300px", overflowY: "auto" }}>
                 <table className="table table-hover align-middle">
-                  <thead className="table-dark">
+                  <thead className="table-dark mt-3">
                     <tr>
                       <th>#</th>
                       <th>Nombre</th>
